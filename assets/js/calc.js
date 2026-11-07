@@ -5,11 +5,18 @@ export const WEEKS = 52;
 export const DEFAULT_HOURS = 12;
 export const DEFAULT_RATE = 32;
 
-const NUMBER_RE = /^\d+(?:[.,]\d+)?$/;
+const NUMBER_RE = /^\d*[.,]?\d+$/;
+const GROUPED_RE = /^\d{1,3}(?:[.,]\d{3})+$/;
 
-// Accepts "12", "12.5" and the Swiss/German "12,5". Anything else is NaN.
+// Accepts what owners type: "12", "12,5", ".5", "CHF 32", "Fr. 32.50", "32.–", "12.5h", "12 Std.", "1'000".
+// A separator before exactly three digits is a thousands separator ("1,000" = 1000). Anything else is NaN.
 export function parseNumber(raw) {
-  const s = String(raw ?? '').trim();
+  const s = String(raw ?? '').trim()
+    .replace(/^(?:CHF|Fr\.?)\s*/i, '')
+    .replace(/[.,]?\s*[–-]+$/, '')
+    .replace(/\s*[a-zäöü.]+$/i, '')
+    .replace(/(\d)['’\s](?=\d{3}\b)/g, '$1');
+  if (GROUPED_RE.test(s)) return Number(s.replace(/[.,]/g, ''));
   return NUMBER_RE.test(s) ? Number(s.replace(',', '.')) : NaN;
 }
 

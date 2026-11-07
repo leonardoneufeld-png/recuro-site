@@ -161,6 +161,7 @@ input.field-v { transition: border-color 0.2s var(--ease-out); }
 input.field-v:hover { border-bottom-color: var(--paper); }
 input.field-v:focus { outline: none; border-bottom-color: var(--paper); }
 input.field-v:focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; }
+input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--muted); }
 .field-result .field-v { border-bottom-color: transparent; white-space: nowrap; }
 .calc-note { margin-top: 2rem; max-width: 46ch; font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
 

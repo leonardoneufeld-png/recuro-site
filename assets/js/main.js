@@ -11,7 +11,14 @@ let lang = pickLang(safeStorage.get('lang'), navigator.languages || [navigator.l
 const updateCalc = () => {
   if (!form || !result) return;
   const { hours, rate } = form.elements;
-  result.textContent = formatCHF(yearlyCost(parseNumber(hours.value), parseNumber(rate.value)), lang);
+  const [h, r] = [hours, rate].map((input) => {
+    const n = parseNumber(input.value);
+    // flag text we can't read; a blank field is just empty, not wrong
+    if (Number.isNaN(n) && input.value.trim()) input.setAttribute('aria-invalid', 'true');
+    else input.removeAttribute('aria-invalid');
+    return n;
+  });
+  result.textContent = formatCHF(yearlyCost(h, r), lang);
 };
 
 const render = () => {
@@ -20,8 +27,8 @@ const render = () => {
   document.querySelectorAll('[data-i18n-content]').forEach((m) => {
     m.setAttribute('content', t(STRINGS, m.getAttribute('data-i18n-content'), lang));
   });
-  // the toggle means "German": pressed exactly while DE is active
-  if (toggle) toggle.setAttribute('aria-pressed', String(lang === 'de'));
+  // the toggle is an action ("switch to the other language"); its label is read in that language
+  if (toggle) toggle.setAttribute('lang', lang === 'de' ? 'en' : 'de');
   const href = bookingHref(BOOKING_URL, CONTACT_EMAIL, lang);
   document.querySelectorAll('[data-book]').forEach((a) => a.setAttribute('href', href));
   const live = isBookingLive(BOOKING_URL);

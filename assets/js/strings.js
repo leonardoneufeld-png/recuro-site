@@ -114,7 +114,7 @@ export const STRINGS = {
     en: 'AI cost per request, compared with the first version',
     de: 'KI-Kosten pro Anfrage, verglichen mit der ersten Version',
   },
-  'case.costNote': { en: 'Early numbers, being measured.', de: 'Erste Messwerte, noch vorläufig.' },
+  'case.costNote': { en: 'Early numbers, being measured.', de: 'Erste Zahlen, Messung läuft.' },
   'case.stat3.value': { en: '1,700+', de: '1700+' },
   'case.stat3.label': { en: 'automated tests, 99% coverage', de: 'automatisierte Tests, 99 % Abdeckung' },
   'case.photoAlt': { en: 'The counter of the bakery café', de: 'Die Theke des Bäckerei-Cafés' },
