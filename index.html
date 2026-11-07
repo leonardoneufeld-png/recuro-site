@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="meta.title">Recuro · Less repeat work for cafés, bakeries and restaurants</title>
+  <meta name="description" content="Recuro builds small AI systems for food businesses in Switzerland: shift planning, ordering, stock counts, cost of goods and invoices. Book a free 30-minute call." data-i18n-content="meta.description">
+  <link rel="canonical" href="https://recuro.ch/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://recuro.ch/">
+  <meta property="og:title" content="Recuro · Less repeat work for cafés, bakeries and restaurants" data-i18n-content="meta.title">
+  <meta property="og:description" content="Recuro builds small AI systems for food businesses in Switzerland: shift planning, ordering, stock counts, cost of goods and invoices. Book a free 30-minute call." data-i18n-content="meta.description">
+  <meta property="og:image" content="https://recuro.ch/assets/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#14110e">
+  <link rel="preload" href="assets/fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/img/hero.webp" as="image" fetchpriority="high">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script type="module" src="assets/js/main.js"></script>
+</head>
+<body>
+  <a class="skip" href="#calc">Skip to content</a>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Main">
+      <ul class="nav-links">
+        <li><a href="#services" data-i18n="nav.services">Services</a></li>
+        <li><a href="#case" data-i18n="nav.case">In use</a></li>
+        <li><a href="#about" data-i18n="nav.about">About</a></li>
+      </ul>
+      <a class="wordmark" href="./" aria-label="Recuro">recuro<span>.ch</span></a>
+      <div class="nav-end">
+        <button class="lang-toggle" type="button" aria-pressed="false" data-i18n-aria="nav.langLabel" aria-label="Auf Deutsch lesen" hidden><span data-i18n="nav.lang">Deutsch</span></button>
+        <a class="nav-book" href="mailto:TODO@recuro.ch?subject=30-minute%20call" data-book><span data-i18n="nav.book">Book a call</span> <span aria-hidden="true">→</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section id="hero" class="hero">
+      <img class="hero-img" data-slot="hero" src="assets/img/hero.webp" width="2400" height="1350" fetchpriority="high" decoding="async" alt="Inside a bakery café in Bern, early morning" data-i18n-alt="hero.photoAlt">
+      <div class="hero-inner">
+        <h1 class="hero-title" data-i18n="hero.title">Every week, the same hours.</h1>
+        <div class="hero-side">
+          <p class="hero-sub" data-i18n="hero.sub">Small AI systems for cafés, bakeries and restaurants, built for the work that comes back every week.</p>
+          <a class="btn-outline" href="mailto:TODO@recuro.ch?subject=30-minute%20call" data-book><span data-i18n="cta.book">Book 30 min</span> <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="calc" class="calc wrap" aria-labelledby="calc-prompt">
+      <p class="eyebrow reveal" data-i18n="calc.eyebrow">Repeat work, in numbers</p>
+      <h2 id="calc-prompt" class="calc-prompt reveal" data-i18n="calc.prompt">Ordering, stock counts, shift planning, invoices. Count the hours they take each week.</h2>
+      <form id="calc-form" class="calc-form reveal" novalidate>
+        <label class="field">
+          <span class="field-k" data-i18n="calc.hours">Hours a week</span>
+          <input class="field-v" name="hours" type="text" inputmode="decimal" value="12" autocomplete="off" spellcheck="false">
+        </label>
+        <label class="field">
+          <span class="field-k" data-i18n="calc.rate">Cost per hour, CHF</span>
+          <input class="field-v" name="rate" type="text" inputmode="decimal" value="32" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="field field-result">
+          <span class="field-k" id="calc-result-label" data-i18n="calc.result">A year</span>
+          <output id="calc-result" class="field-v" for="calc-form" aria-labelledby="calc-result-label" aria-live="polite">CHF 19,968</output>
+        </div>
+      </form>
+      <p class="calc-note reveal" data-i18n="calc.note">Your own numbers; nothing is sent anywhere. Which of those hours really need a person?</p>
+    </section>
+
+    <section id="services" class="services wrap" aria-labelledby="services-h">
+      <div class="services-media reveal">
+        <img data-slot="kitchen" src="assets/img/kitchen.webp" width="1600" height="1000" loading="lazy" decoding="async" alt="Hands weighing dough on a kitchen scale" data-i18n-alt="services.photoAlt">
+      </div>
+      <div class="services-body">
+        <p class="eyebrow reveal" id="services-h" data-i18n="services.eyebrow">What Recuro builds</p>
+        <p class="lede reveal" data-i18n="services.intro">Each piece starts small and fits the way your team already works.</p>
+        <ol class="service-list">
+          <li class="service reveal">
+            <h3><span data-i18n="services.staff.title">Staff hours and shift planning</span> <span class="tag" data-i18n="services.staff.tag">Running at a client</span></h3>
+            <p data-i18n="services.staff.body">Staff log hours, swap shifts, report sick and request days off in a chat. The monthly statement is ready at month end.</p>
+          </li>
+          <li class="service reveal">
+            <h3 data-i18n="services.ordering.title">Semi-automatic ordering</h3>
+            <p data-i18n="services.ordering.body">The system drafts the order from stock and sales. A person checks it before it goes to the supplier.</p>
+          </li>
+          <li class="service reveal">
+            <h3 data-i18n="services.stock.title">Automatic stock counts</h3>
+            <p data-i18n="services.stock.body">Stock levels stay current without a clipboard at closing time.</p>
+          </li>
+          <li class="service reveal">
+            <h3 data-i18n="services.cogs.title">Cost of goods</h3>
+            <p data-i18n="services.cogs.body">What each product really costs, updated when supplier prices change.</p>
+          </li>
+          <li class="service reveal">
+            <h3 data-i18n="services.invoices.title">Invoices</h3>
+            <p data-i18n="services.invoices.body">Generated from what was delivered or sold, ready to check and send.</p>
+          </li>
+        </ol>
+        <p class="services-scale reveal" data-i18n="services.scale">It starts with one café. The same setup works across several locations.</p>
+      </div>
+    </section>
+
+    <section class="rule wrap" aria-labelledby="rule-h">
+      <p class="eyebrow reveal" data-i18n="rule.eyebrow">How it works</p>
+      <p class="rule-text reveal" id="rule-h" data-i18n="rule.text">The AI chooses. The code does the work. A person confirms.</p>
+      <p class="rule-body reveal" data-i18n="rule.body">The language model only makes suggestions. Ordinary code does the sums and keeps the records. Nothing changes until someone on your team says yes.</p>
+    </section>
+
+    <section id="case" class="case" aria-labelledby="case-h">
+      <div class="case-media reveal">
+        <img data-slot="lebread" src="assets/img/lebread.webp" width="1600" height="1000" loading="lazy" decoding="async" alt="The counter of the bakery café" data-i18n-alt="case.photoAlt">
+      </div>
+      <div class="case-body wrap">
+        <p class="eyebrow reveal" data-i18n="case.eyebrow">In use</p>
+        <h2 class="case-title reveal" id="case-h" data-i18n="case.title">LeBread Ops</h2>
+        <p class="case-client reveal" data-i18n="case.client">LeBread, Bern · bakery café</p>
+        <p class="case-text reveal" data-i18n="case.body">A staff assistant in Telegram for hours, shifts, sick leave and the monthly close. It runs in production.</p>
+        <dl class="stats">
+          <div class="stat reveal">
+            <dt data-i18n="case.stat1.value">4 h</dt>
+            <dd data-i18n="case.stat1.label">a month saved on overtime checks (measured)</dd>
+          </div>
+          <div class="stat reveal">
+            <dt data-i18n="case.stat2.value">−90%</dt>
+            <dd><span data-i18n="case.stat2.label">AI cost per request, compared with the first version</span> <em class="stat-note" data-i18n="case.costNote">Early numbers, being measured.</em></dd>
+          </div>
+          <div class="stat reveal">
+            <dt data-i18n="case.stat3.value">1,700+</dt>
+            <dd data-i18n="case.stat3.label">automated tests, 99% coverage</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="about" class="about wrap" aria-labelledby="about-h">
+      <div class="about-media reveal">
+        <img data-slot="leo" src="assets/img/leo.webp" width="800" height="1000" loading="lazy" decoding="async" alt="Portrait of Leo Neufeld" data-i18n-alt="about.photoAlt">
+      </div>
+      <div class="about-body">
+        <p class="eyebrow reveal" data-i18n="about.eyebrow">About</p>
+        <h2 class="about-title reveal" id="about-h" data-i18n="about.title">Leo Neufeld</h2>
+        <p class="about-text reveal" data-i18n="about.body">I ran operations and logistics at coffee companies in Chicago and Frankfurt before I started writing the software myself. I trained as an industrial engineer and I am studying for an M.Sc. in Data Science at BFH in Bern. I started Recuro in 2026.</p>
+        <h3 class="track-title reveal" data-i18n="about.trackTitle">Before Recuro</h3>
+        <ul class="track">
+          <li class="reveal" data-i18n="about.bunca">BUNCA Coffee, Frankfurt · Logistics Lead. Product shortages −20%, delivery lead times −50% in Germany and −25% in the EU.</li>
+          <li class="reveal" data-i18n="about.vigo">VIGO Coffee, Chicago · Operations Manager. Returning customers +70%, raw material costs from 35% to 25%.</li>
+        </ul>
+        <a class="text-link reveal" href="https://leonardoneufeld.ch"><span data-i18n="about.link">Full background</span> <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section id="book" class="book wrap" aria-labelledby="book-h">
+      <p class="eyebrow reveal" data-i18n="book.eyebrow">30 minutes</p>
+      <h2 class="book-title reveal" id="book-h" data-i18n="book.title">A free 30-minute call.</h2>
+      <p class="book-text reveal" data-i18n="book.body">Bring the hours from above. We look at which tasks repeat, which could run on their own, and what that would take.</p>
+      <a class="btn-outline reveal" href="mailto:TODO@recuro.ch?subject=30-minute%20call" data-book><span data-i18n="cta.book">Book 30 min</span> <span aria-hidden="true">→</span></a>
+      <p class="book-note reveal" data-booking-fallback data-i18n="book.fallback">The calendar is not connected yet, so the button opens an email.</p>
+      <p class="book-note reveal" data-booking-live hidden data-i18n="book.note">Booking runs on Cal.com. What you enter there is handled under Cal.com’s privacy policy.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer wrap">
+    <span data-i18n="footer.place">Recuro · Bern, Switzerland</span>
+    <a href="legal.html" data-i18n="footer.legal">Impressum &amp; privacy</a>
+  </footer>
+</body>
+</html>
