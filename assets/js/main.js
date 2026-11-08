@@ -2,6 +2,7 @@ import { pickLang, applyLang, safeStorage, t } from './i18n.js';
 import { STRINGS } from './strings.js';
 import { parseNumber, yearlyCost, formatCHF } from './calc.js';
 import { BOOKING_URL, CONTACT_EMAIL, bookingHref, isBookingLive } from './config.js';
+import { initParticles } from './particles.js';
 
 const toggle = document.querySelector('.lang-toggle');
 const form = document.querySelector('#calc-form');
@@ -54,6 +55,12 @@ render();
 // Fade-in on scroll. No JS, no IntersectionObserver or reduced motion: content stays static and visible.
 const MAX_STAGGER = 6; // keeps a section's cascade under ~450 ms
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// the rule sentence gets ink dots instead of the plain fade
+const ruleText = document.querySelector('.rule-text');
+if (!reduce && ruleText && 'ResizeObserver' in window && 'IntersectionObserver' in window) {
+  ruleText.classList.remove('reveal');
+  initParticles(ruleText);
+}
 const items = document.querySelectorAll('.reveal');
 if (!reduce && 'IntersectionObserver' in window && items.length) {
   const io = new IntersectionObserver((entries) => {

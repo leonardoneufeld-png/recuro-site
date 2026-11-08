@@ -221,7 +221,10 @@ input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--m
 }
 
 /* ---------- rule ---------- */
-.rule { padding-block: var(--section); border-top: 1px solid var(--line); }
+.rule { position: relative; overflow: clip; padding-block: var(--section); border-top: 1px solid var(--line); }
+/* ink-dot version of the sentence (particles.js); the DOM text stays for readers and copy */
+.particles { position: absolute; touch-action: pan-y; }
+.rule-text.is-particles { color: transparent; }
 .rule-text {
   font-size: var(--step-4); font-weight: 520; letter-spacing: -0.045em; line-height: 0.98;
   max-width: 17ch; text-wrap: balance;
