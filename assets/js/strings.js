@@ -29,8 +29,8 @@ export const STRINGS = {
 
   'hero.title': { en: 'Every week, the same hours.', de: 'Jede Woche dieselben Stunden.' },
   'hero.sub': {
-    en: 'Sales, stock, orders, staff hours, costs and invoices on one platform, for cafés, bakeries and restaurants.',
-    de: 'Verkauf, Lager, Bestellungen, Arbeitszeiten, Wareneinsatz und Rechnungen auf einer Plattform, für Cafés, Bäckereien und Restaurants.',
+    en: 'Recuro builds one platform for sales, stock, orders, staff hours, cost of goods and invoices, for cafés, bakeries and restaurants.',
+    de: 'Recuro baut eine Plattform für Verkauf, Lager, Bestellungen, Arbeitszeiten, Wareneinsatz und Rechnungen, für Cafés, Bäckereien und Restaurants.',
   },
   'hero.photoAlt': {
     en: 'Six brushed-steel panels floating apart in a dark room',
@@ -110,8 +110,8 @@ export const STRINGS = {
     de: 'Mitarbeitende erfassen Stunden, tauschen Schichten, melden sich krank und beantragen freie Tage im Chat. Die Monatsabrechnung steht am Monatsende bereit.',
   },
   'map.staff.flow': {
-    en: 'Hours reach payroll already checked, and staff cost sits next to sales for each day.',
-    de: 'Die Stunden kommen geprüft in der Lohnbuchhaltung an, und die Personalkosten stehen pro Tag neben dem Umsatz.',
+    en: 'Hours reach payroll already checked. Once the till is connected, staff cost sits next to sales for each day.',
+    de: 'Die Stunden kommen geprüft in der Lohnbuchhaltung an. Sobald die Kasse angebunden ist, stehen die Personalkosten pro Tag neben dem Umsatz.',
   },
 
   'map.cogs.title': { en: 'Cost of goods', de: 'Wareneinsatz' },
@@ -134,8 +134,8 @@ export const STRINGS = {
     de: 'Lieferantenrechnungen sammeln sich im Ordner, bis jemand sie abtippt.',
   },
   'map.invoices.built': {
-    en: 'Incoming invoices are read and matched to the order and the delivery. Outgoing ones are drawn up from what was delivered.',
-    de: 'Eingehende Rechnungen werden gelesen und mit Bestellung und Lieferung abgeglichen. Ausgehende entstehen aus dem, was geliefert wurde.',
+    en: 'Incoming invoices are read and matched to the order and the delivery. Outgoing ones are drawn up from what was delivered, and a person checks them before they go out.',
+    de: 'Eingehende Rechnungen werden gelesen und mit Bestellung und Lieferung abgeglichen. Ausgehende entstehen aus dem, was geliefert wurde, und eine Person prüft sie, bevor sie verschickt werden.',
   },
   'map.invoices.flow': {
     en: 'New prices go to cost of goods. Checked invoices are ready for the bookkeeper.',
@@ -145,12 +145,12 @@ export const STRINGS = {
   'flow.eyebrow': { en: 'One platform', de: 'Eine Plattform' },
   'flow.title': { en: 'The routine runs by itself.', de: 'Die Routine läuft von selbst.' },
   'flow.body': {
-    en: 'A sale lowers the stock. Low stock drafts an order. The invoice is matched to that order, hours reach payroll, and the cost of each product stays current. Someone on the team approves what matters. The rest of the day goes to guests and sales.',
-    de: 'Ein Verkauf senkt den Bestand. Ein knapper Bestand löst einen Bestellvorschlag aus. Die Rechnung wird mit der Bestellung abgeglichen, die Stunden kommen in der Lohnbuchhaltung an, und der Wareneinsatz pro Produkt bleibt aktuell. Jemand im Team gibt frei, was zählt. Der Rest des Tages gehört den Gästen und dem Verkauf.',
+    en: 'A sale lowers the stock. Low stock drafts an order. The invoice is matched to that order, hours reach payroll, and the cost of each product stays current. A person approves before anything is sent. The rest of the day goes to guests and sales.',
+    de: 'Ein Verkauf senkt den Bestand. Ein knapper Bestand löst einen Bestellvorschlag aus. Die Rechnung wird mit der Bestellung abgeglichen, die Stunden kommen in der Lohnbuchhaltung an, und der Wareneinsatz pro Produkt bleibt aktuell. Eine Person gibt frei, bevor etwas verschickt wird. Der Rest des Tages gehört den Gästen und dem Verkauf.',
   },
   'flow.alt': {
     en: 'The six panels joined by lines of light into one map',
-    de: 'Die sechs Platten, durch Lichtlinien zu einer Karte verbunden',
+    de: 'Die sechs Platten, durch Lichtlinien zu einem Netz verbunden',
   },
 
   'rule.eyebrow': { en: 'How it works', de: 'So funktioniert es' },
