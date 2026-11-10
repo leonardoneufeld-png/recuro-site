@@ -134,3 +134,11 @@ if (mapEl && header && 'IntersectionObserver' in window) {
   watchHeader();
   addEventListener('resize', watchHeader);
 }
+
+// 3D map: index page only, after first paint, through a dynamic import. Any failure leaves the static page as it is.
+const mapCanvas = mapEl?.querySelector('.stage');
+if (mapEl && mapCanvas) {
+  const startMap = () => import('./map/engine.js').then((m) => m.startMap({ root: mapEl, canvas: mapCanvas })).catch(() => {});
+  if ('requestIdleCallback' in window) requestIdleCallback(startMap, { timeout: 2000 });
+  else setTimeout(startMap, 800);
+}

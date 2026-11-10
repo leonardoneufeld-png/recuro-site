@@ -13,6 +13,7 @@
   --paper: #ede8e0;
   --muted: #a8a096;
   --muted-light: #675f55;
+  --signal: #f0c987;
 
   /* semantic: light (bone) by default */
   --bg: var(--paper);
@@ -169,8 +170,22 @@ html.past-map body:not(.subpage) > .site-header {
 .map { position: relative; overflow-x: clip; background: var(--ink); }
 /* the WebGL canvas, layered on later; hidden until a script sets html.map-live */
 .stage { position: fixed; inset: 0; z-index: 0; display: none; width: 100%; height: 100%; }
-html.map-live .stage { display: block; }
+html.map-live .stage { display: block; opacity: 0; transition: opacity 0.6s var(--ease-out); }
+html.map-shown .stage { opacity: 1; }
 .map > :not(.stage) { position: relative; z-index: 1; }
+/* the fixed canvas must not show through or over the bone page after the map */
+html.map-live .map { clip-path: inset(0); }
+/* the live hero: the canvas is the backdrop; the photo fades out over it, the bottom scrim stays for the headline */
+html.map-live .hero { background: transparent; }
+html.map-live .hero::after {
+  background:
+    linear-gradient(to top, rgb(20 17 14 / 0.86) 0%, rgb(20 17 14 / 0.62) 42%, rgb(20 17 14 / 0) 80%),
+    linear-gradient(to bottom, rgb(20 17 14 / 0.5) 0%, rgb(20 17 14 / 0) 22%);
+}
+html.map-live .hero-img { visibility: hidden; opacity: 0; transition: opacity 0.6s var(--ease-out), visibility 0s linear 0.6s; }
+/* desktop: text columns get a soft dark glass so a passing plate never washes out a line of copy */
+html.map-live .beat-text { background: rgb(20 17 14 / 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 1.5rem; margin: -1.5rem; }
+html.map-live:not(.map-shown) .hero-img { visibility: visible; opacity: 1; }
 
 .beat { display: flex; align-items: center; min-height: 100svh; padding-block: calc(var(--section) * 0.5); }
 .beat-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: center; }
@@ -196,7 +211,8 @@ html.map-live .stage { display: block; }
 .flow-still { display: block; margin-top: clamp(3rem, 2rem + 4vw, 6rem); aspect-ratio: 21 / 9; object-fit: cover; }
 
 /* the canvas shows the panels once it is live, so the stills stay as empty space */
-html.map-live .beat-still, html.map-live .flow-still { visibility: hidden; }
+html.map-live .beat-still, html.map-live .flow-still { visibility: hidden; transition: visibility 0s linear 0.6s; }
+html.map-live:not(.map-shown) :is(.beat-still, .flow-still) { visibility: visible; }
 
 @media (max-width: 759px) {
   .beat { min-height: 0; padding-block: calc(var(--section) * 0.45); }
@@ -207,7 +223,7 @@ html.map-live .beat-still, html.map-live .flow-still { visibility: hidden; }
   .beat[data-panel='stock'] .beat-still, .beat[data-panel='staff'] .beat-still, .beat[data-panel='invoices'] .beat-still { grid-column: 1; grid-row: auto; }
   .beat-still { order: -1; }
   /* over the live canvas the text gets a flat ink scrim to stay readable */
-  html.map-live .beat-text { background: rgb(20 17 14 / var(--scrim-opacity)); padding: 1.25rem; }
+  html.map-live .beat-text { background: rgb(20 17 14 / var(--scrim-opacity)); padding: 1.25rem; margin: 0; }
   .flow-body { grid-column: 1 / -1; }
   .flow-still { aspect-ratio: 4 / 5; }
 }
