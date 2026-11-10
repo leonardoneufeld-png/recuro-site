@@ -10,15 +10,14 @@ export const t = (strings, key, lang) => {
 
 // doc is injectable for tests; defaults to the global document at call time
 export const applyLang = (root, strings, lang, doc = globalThis.document) => {
-  root.querySelectorAll('[data-i18n]').forEach((el) => {
-    el.textContent = t(strings, el.getAttribute('data-i18n'), lang);
+  // a missing key leaves the shipped English in place instead of blanking the element
+  const each = (sel, attrName, apply) => root.querySelectorAll(sel).forEach((el) => {
+    const v = t(strings, el.getAttribute(attrName), lang);
+    if (v) apply(el, v);
   });
-  root.querySelectorAll('[data-i18n-alt]').forEach((el) => {
-    el.setAttribute('alt', t(strings, el.getAttribute('data-i18n-alt'), lang));
-  });
-  root.querySelectorAll('[data-i18n-aria]').forEach((el) => {
-    el.setAttribute('aria-label', t(strings, el.getAttribute('data-i18n-aria'), lang));
-  });
+  each('[data-i18n]', 'data-i18n', (el, v) => { el.textContent = v; });
+  each('[data-i18n-alt]', 'data-i18n-alt', (el, v) => el.setAttribute('alt', v));
+  each('[data-i18n-aria]', 'data-i18n-aria', (el, v) => el.setAttribute('aria-label', v));
   if (doc) doc.documentElement.lang = lang;
 };
 

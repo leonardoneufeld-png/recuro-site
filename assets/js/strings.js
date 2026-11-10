@@ -16,6 +16,9 @@ export const STRINGS = {
   },
   'meta.notfoundTitle': { en: 'Page not found · Recuro', de: 'Seite nicht gefunden · Recuro' },
 
+  'nav.skip': { en: 'Skip to content', de: 'Zum Inhalt springen' },
+  'nav.main': { en: 'Main', de: 'Hauptnavigation' },
+  'nav.home': { en: 'Recuro', de: 'Recuro' },
   'nav.services': { en: 'Services', de: 'Leistungen' },
   'nav.case': { en: 'In use', de: 'Im Einsatz' },
   'nav.about': { en: 'About', de: 'Über mich' },
@@ -178,6 +181,7 @@ export const STRINGS = {
   },
   'legal.back': { en: 'Back to the start', de: 'Zurück zur Startseite' },
 
+  'notfound.description': { en: 'This page doesn’t exist.', de: 'Diese Seite gibt es nicht.' },
   'notfound.title': { en: 'This page doesn’t exist.', de: 'Diese Seite gibt es nicht.' },
   'notfound.link': { en: 'Back to recuro.ch', de: 'Zurück zu recuro.ch' },
 };

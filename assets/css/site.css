@@ -75,6 +75,8 @@ a { color: inherit; text-underline-offset: 0.2em; text-decoration-thickness: 1px
   background: var(--fg); color: var(--bg); padding: 0.6rem 1rem; text-decoration: none;
 }
 .skip:focus { top: 1rem; }
+/* skip-link target takes focus but is not an interactive control */
+main:focus { outline: none; }
 
 .eyebrow {
   font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase;
