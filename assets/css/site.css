@@ -185,6 +185,21 @@ html.map-live .hero::after {
 html.map-live .hero-img { visibility: hidden; opacity: 0; transition: opacity 0.6s var(--ease-out), visibility 0s linear 0.6s; }
 /* desktop: text columns get a soft dark glass so a passing plate never washes out a line of copy */
 html.map-live .beat-text { background: rgb(20 17 14 / 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 1.5rem; margin: -1.5rem; }
+/* the finished map: the text pins under the header while the assembled, pulsing map holds in the lower part of the screen */
+html.map-live .flow { min-height: 220svh; padding-block: 2rem 0; }
+html.map-live .flow-still { display: none; }
+html.map-live .flow-head {
+  position: sticky; top: 4.6rem; padding-block: 1.25rem 1.5rem;
+  background: rgb(20 17 14 / 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+html.map-live .flow-head .eyebrow { margin-bottom: 0.75rem; }
+html.map-live .flow-title { font-size: clamp(2rem, 1.4rem + 2.6vw, 3.6rem); }
+html.map-live .flow-body { margin-top: 0.75rem; font-size: var(--step-0); line-height: 1.45; }
+@media (min-width: 760px) {
+  html.map-live .flow-head .eyebrow { grid-row: 1; }
+  html.map-live .flow-head .flow-title { grid-row: 2; grid-column: 1 / span 5; }
+  html.map-live .flow-head .flow-body { grid-row: 2; grid-column: 6 / span 7; margin-top: 0; align-self: end; }
+}
 html.map-live:not(.map-shown) .hero-img { visibility: visible; opacity: 1; }
 
 .beat { display: flex; align-items: center; min-height: 100svh; padding-block: calc(var(--section) * 0.5); }
