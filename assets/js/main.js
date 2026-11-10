@@ -80,8 +80,8 @@ const startParticles = async () => {
 const armParticles = () => {
   if (!canParticles() || nearObserver) return;
   // within about one viewport of the screen
-  nearObserver = new IntersectionObserver(([e]) => {
-    if (!e.isIntersecting) return;
+  nearObserver = new IntersectionObserver((entries) => {
+    if (!entries[entries.length - 1].isIntersecting) return;
     nearObserver.disconnect(); nearObserver = null;
     startParticles();
   }, { rootMargin: '100% 0px 100% 0px' });
@@ -121,18 +121,20 @@ const mapEl = document.querySelector('.map');
 const header = document.querySelector('.site-header');
 if (mapEl && header && 'IntersectionObserver' in window) {
   const root = document.documentElement;
-  let headerObserver = null;
+  let headerObserver = null, headerTimer = 0;
   const watchHeader = () => {
     headerObserver?.disconnect();
     const bar = Math.max(1, Math.round(header.getBoundingClientRect().height));
+    root.style.setProperty('--header-h', `${bar}px`); // scroll-padding and the pinned flow text read this
     // the root margins shrink the viewport to the band y = 0 .. bar; the map "intersects" while it sits under the header
-    headerObserver = new IntersectionObserver(([e]) => root.classList.toggle('past-map', !e.isIntersecting),
+    headerObserver = new IntersectionObserver((entries) => root.classList.toggle('past-map', !entries[entries.length - 1].isIntersecting),
       { rootMargin: `0px 0px -${Math.max(0, innerHeight - bar)}px 0px` });
     headerObserver.observe(mapEl);
   };
   root.classList.add('header-live');
   watchHeader();
-  addEventListener('resize', watchHeader);
+  // resize fires many times while a window is dragged or a phone toolbar slides; rebuild once it settles
+  addEventListener('resize', () => { clearTimeout(headerTimer); headerTimer = setTimeout(watchHeader, 150); });
 }
 
 // 3D map: index page only, after first paint, through a dynamic import. Any failure leaves the static page as it is.
