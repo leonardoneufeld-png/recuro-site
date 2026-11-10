@@ -44,7 +44,7 @@
   <header class="site-header">
     <nav class="nav" aria-label="Main" data-i18n-aria="nav.main">
       <ul class="nav-links">
-        <li><a href="#services" data-i18n="nav.services">Services</a></li>
+        <li><a href="#map" data-i18n="nav.services">Services</a></li>
         <li><a href="#case" data-i18n="nav.case">In use</a></li>
         <li><a href="#about" data-i18n="nav.about">About</a></li>
       </ul>
@@ -57,16 +57,174 @@
   </header>
 
   <main id="main" tabindex="-1">
+    <div class="map" id="map">
+      <canvas class="stage" aria-hidden="true"></canvas>
     <section id="hero" class="hero">
-      <img class="hero-img" data-slot="hero" src="assets/img/hero.webp" width="2400" height="1350" fetchpriority="high" decoding="async" alt="Inside a bakery café in Bern, early morning" data-i18n-alt="hero.photoAlt">
+      <img class="hero-img" data-slot="hero" src="assets/img/hero.webp" width="2400" height="1350" fetchpriority="high" decoding="async" alt="Six brushed-steel panels floating apart in a dark room" data-i18n-alt="hero.photoAlt">
       <div class="hero-inner">
         <h1 class="hero-title" data-i18n="hero.title">Every week, the same hours.</h1>
         <div class="hero-side">
-          <p class="hero-sub" data-i18n="hero.sub">Small AI systems for cafés, bakeries and restaurants, built for the work that comes back every week.</p>
+          <p class="hero-sub" data-i18n="hero.sub">Sales, stock, orders, staff hours, costs and invoices on one platform, for cafés, bakeries and restaurants.</p>
           <a class="btn-outline" href="mailto:TODO@recuro.ch?subject=30-minute%20call" data-book><span data-i18n="cta.book">Book 30 min</span> <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </section>
+
+    <section class="beat" id="panel-pos" data-panel="pos" aria-labelledby="panel-pos-h">
+      <div class="beat-grid wrap">
+        <div class="beat-text reveal">
+          <p class="beat-meta"><span class="beat-index" aria-hidden="true">01</span></p>
+          <h2 class="beat-title" id="panel-pos-h" data-i18n="map.pos.title">Till and sales</h2>
+          <dl class="beat-list">
+            <div class="beat-row">
+              <dt data-i18n="map.today">Today</dt>
+              <dd data-i18n="map.pos.today">The till records every sale. The report is printed at closing and filed.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.built">What Recuro builds</dt>
+              <dd data-i18n="map.pos.built">The till on the counter stays. Recuro reads it: what sold, at what hour, on which day.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.flow">Where it goes</dt>
+              <dd data-i18n="map.pos.flow">Every sale lowers the stock count and shows ordering what next week will need.</dd>
+            </div>
+          </dl>
+        </div>
+        <img class="beat-still" data-slot="panel-pos" src="assets/img/panel-pos.webp" alt="" loading="lazy" decoding="async" width="1600" height="1200">
+      </div>
+    </section>
+
+    <section class="beat" id="panel-stock" data-panel="stock" aria-labelledby="panel-stock-h">
+      <div class="beat-grid wrap">
+        <div class="beat-text reveal">
+          <p class="beat-meta"><span class="beat-index" aria-hidden="true">02</span></p>
+          <h2 class="beat-title" id="panel-stock-h" data-i18n="map.stock.title">Stock</h2>
+          <dl class="beat-list">
+            <div class="beat-row">
+              <dt data-i18n="map.today">Today</dt>
+              <dd data-i18n="map.stock.today">Counted by hand with a clipboard after closing, once a week if the week allows.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.built">What Recuro builds</dt>
+              <dd data-i18n="map.stock.built">A running count. Sales take stock out, deliveries put it back, and a short spot check corrects the difference.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.flow">Where it goes</dt>
+              <dd data-i18n="map.stock.flow">When an item runs low, ordering already knows.</dd>
+            </div>
+          </dl>
+        </div>
+        <img class="beat-still" data-slot="panel-stock" src="assets/img/panel-stock.webp" alt="" loading="lazy" decoding="async" width="1600" height="1200">
+      </div>
+    </section>
+
+    <section class="beat" id="panel-ordering" data-panel="ordering" aria-labelledby="panel-ordering-h">
+      <div class="beat-grid wrap">
+        <div class="beat-text reveal">
+          <p class="beat-meta"><span class="beat-index" aria-hidden="true">03</span></p>
+          <h2 class="beat-title" id="panel-ordering-h" data-i18n="map.ordering.title">Ordering and suppliers</h2>
+          <dl class="beat-list">
+            <div class="beat-row">
+              <dt data-i18n="map.today">Today</dt>
+              <dd data-i18n="map.ordering.today">Orders go out by phone and WhatsApp, from memory, usually the evening before.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.built">What Recuro builds</dt>
+              <dd data-i18n="map.ordering.built">The system drafts each order from stock and sales. A person checks it before it goes to the supplier.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.flow">Where it goes</dt>
+              <dd data-i18n="map.ordering.flow">The sent order waits for its delivery note and its invoice.</dd>
+            </div>
+          </dl>
+        </div>
+        <img class="beat-still" data-slot="panel-ordering" src="assets/img/panel-ordering.webp" alt="" loading="lazy" decoding="async" width="1600" height="1200">
+      </div>
+    </section>
+
+    <section class="beat" id="panel-staff" data-panel="staff" aria-labelledby="panel-staff-h">
+      <div class="beat-grid wrap">
+        <div class="beat-text reveal">
+          <p class="beat-meta"><span class="beat-index" aria-hidden="true">04</span>
+          <span class="tag" data-i18n="map.staff.tag">Running at a client</span></p>
+          <h2 class="beat-title" id="panel-staff-h" data-i18n="map.staff.title">Staff hours and payroll</h2>
+          <dl class="beat-list">
+            <div class="beat-row">
+              <dt data-i18n="map.today">Today</dt>
+              <dd data-i18n="map.staff.today">Timesheets on paper, shift swaps in a group chat, and an Excel file at month end.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.built">What Recuro builds</dt>
+              <dd data-i18n="map.staff.built">Staff log hours, swap shifts, report sick and request days off in a chat. The monthly statement is ready at month end.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.flow">Where it goes</dt>
+              <dd data-i18n="map.staff.flow">Hours reach payroll already checked, and staff cost sits next to sales for each day.</dd>
+            </div>
+          </dl>
+        </div>
+        <img class="beat-still" data-slot="panel-staff" src="assets/img/panel-staff.webp" alt="" loading="lazy" decoding="async" width="1600" height="1200">
+      </div>
+    </section>
+
+    <section class="beat" id="panel-cogs" data-panel="cogs" aria-labelledby="panel-cogs-h">
+      <div class="beat-grid wrap">
+        <div class="beat-text reveal">
+          <p class="beat-meta"><span class="beat-index" aria-hidden="true">05</span></p>
+          <h2 class="beat-title" id="panel-cogs-h" data-i18n="map.cogs.title">Cost of goods</h2>
+          <dl class="beat-list">
+            <div class="beat-row">
+              <dt data-i18n="map.today">Today</dt>
+              <dd data-i18n="map.cogs.today">Calculated once, when the menu was written. Supplier prices have changed since.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.built">What Recuro builds</dt>
+              <dd data-i18n="map.cogs.built">What each product costs to make, recalculated when a supplier invoice shows a new price.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.flow">Where it goes</dt>
+              <dd data-i18n="map.cogs.flow">Margin per product, next to what sold.</dd>
+            </div>
+          </dl>
+        </div>
+        <img class="beat-still" data-slot="panel-cogs" src="assets/img/panel-cogs.webp" alt="" loading="lazy" decoding="async" width="1600" height="1200">
+      </div>
+    </section>
+
+    <section class="beat" id="panel-invoices" data-panel="invoices" aria-labelledby="panel-invoices-h">
+      <div class="beat-grid wrap">
+        <div class="beat-text reveal">
+          <p class="beat-meta"><span class="beat-index" aria-hidden="true">06</span></p>
+          <h2 class="beat-title" id="panel-invoices-h" data-i18n="map.invoices.title">Invoices</h2>
+          <dl class="beat-list">
+            <div class="beat-row">
+              <dt data-i18n="map.today">Today</dt>
+              <dd data-i18n="map.invoices.today">Supplier invoices pile up in a folder until someone types them in.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.built">What Recuro builds</dt>
+              <dd data-i18n="map.invoices.built">Incoming invoices are read and matched to the order and the delivery. Outgoing ones are drawn up from what was delivered.</dd>
+            </div>
+            <div class="beat-row">
+              <dt data-i18n="map.flow">Where it goes</dt>
+              <dd data-i18n="map.invoices.flow">New prices go to cost of goods. Checked invoices are ready for the bookkeeper.</dd>
+            </div>
+          </dl>
+        </div>
+        <img class="beat-still" data-slot="panel-invoices" src="assets/img/panel-invoices.webp" alt="" loading="lazy" decoding="async" width="1600" height="1200">
+      </div>
+    </section>
+
+    <section class="flow" id="flow" aria-labelledby="flow-h">
+      <div class="flow-head wrap">
+        <p class="eyebrow reveal" data-i18n="flow.eyebrow">One platform</p>
+        <h2 class="flow-title reveal" id="flow-h" data-i18n="flow.title">The routine runs by itself.</h2>
+        <p class="flow-body reveal" data-i18n="flow.body">A sale lowers the stock. Low stock drafts an order. The invoice is matched to that order, hours reach payroll, and the cost of each product stays current. Someone on the team approves what matters. The rest of the day goes to guests and sales.</p>
+      </div>
+      <img class="flow-still wrap" data-slot="flow" src="assets/img/flow.webp" width="2400" height="1029" loading="lazy" decoding="async" alt="The six panels joined by lines of light into one map" data-i18n-alt="flow.alt">
+    </section>
+    </div>
+    <!-- /map -->
 
     <section id="calc" class="calc wrap" aria-labelledby="calc-prompt">
       <p class="eyebrow reveal" data-i18n="calc.eyebrow">Repeat work, in numbers</p>
@@ -87,39 +245,6 @@
       </form>
       <p class="calc-hint" id="calc-hint" aria-live="polite"></p>
       <p class="calc-note reveal" data-i18n="calc.note">Your own numbers; nothing is sent anywhere. Which of those hours really need a person?</p>
-    </section>
-
-    <section id="services" class="services wrap" aria-labelledby="services-h">
-      <div class="services-media reveal">
-        <img data-slot="kitchen" src="assets/img/kitchen.webp" width="1600" height="1000" loading="lazy" decoding="async" alt="Hands weighing dough on a kitchen scale" data-i18n-alt="services.photoAlt">
-      </div>
-      <div class="services-body">
-        <p class="eyebrow reveal" id="services-h" data-i18n="services.eyebrow">What Recuro builds</p>
-        <p class="lede reveal" data-i18n="services.intro">Each piece starts small and fits the way your team already works.</p>
-        <ol class="service-list">
-          <li class="service reveal">
-            <h3><span data-i18n="services.staff.title">Staff hours and shift planning</span> <span class="tag" data-i18n="services.staff.tag">Running at a client</span></h3>
-            <p data-i18n="services.staff.body">Staff log hours, swap shifts, report sick and request days off in a chat. The monthly statement is ready at month end.</p>
-          </li>
-          <li class="service reveal">
-            <h3 data-i18n="services.ordering.title">Semi-automatic ordering</h3>
-            <p data-i18n="services.ordering.body">The system drafts the order from stock and sales. A person checks it before it goes to the supplier.</p>
-          </li>
-          <li class="service reveal">
-            <h3 data-i18n="services.stock.title">Automatic stock counts</h3>
-            <p data-i18n="services.stock.body">Stock levels stay current without a clipboard at closing time.</p>
-          </li>
-          <li class="service reveal">
-            <h3 data-i18n="services.cogs.title">Cost of goods</h3>
-            <p data-i18n="services.cogs.body">What each product really costs, updated when supplier prices change.</p>
-          </li>
-          <li class="service reveal">
-            <h3 data-i18n="services.invoices.title">Invoices</h3>
-            <p data-i18n="services.invoices.body">Generated from what was delivered or sold, ready to check and send.</p>
-          </li>
-        </ol>
-        <p class="services-scale reveal" data-i18n="services.scale">It starts with one café. The same setup works across several locations.</p>
-      </div>
     </section>
 
     <section class="rule wrap" aria-labelledby="rule-h">

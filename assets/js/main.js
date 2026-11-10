@@ -114,3 +114,23 @@ if (!reduce && 'IntersectionObserver' in window && items.length) {
   items.forEach((el) => (el.getBoundingClientRect().top < innerHeight ? el.classList.add('is-in') : io.observe(el)));
   document.documentElement.classList.add('motion');
 }
+
+// Header: dark while it is over the map, bone after it. One observer on a thin strip at the header's own height.
+// Without IntersectionObserver the header keeps its static look (absolute, dark, scrolls away with the hero).
+const mapEl = document.querySelector('.map');
+const header = document.querySelector('.site-header');
+if (mapEl && header && 'IntersectionObserver' in window) {
+  const root = document.documentElement;
+  let headerObserver = null;
+  const watchHeader = () => {
+    headerObserver?.disconnect();
+    const bar = Math.max(1, Math.round(header.getBoundingClientRect().height));
+    // the root margins shrink the viewport to the band y = 0 .. bar; the map "intersects" while it sits under the header
+    headerObserver = new IntersectionObserver(([e]) => root.classList.toggle('past-map', !e.isIntersecting),
+      { rootMargin: `0px 0px -${Math.max(0, innerHeight - bar)}px 0px` });
+    headerObserver.observe(mapEl);
+  };
+  root.classList.add('header-live');
+  watchHeader();
+  addEventListener('resize', watchHeader);
+}
