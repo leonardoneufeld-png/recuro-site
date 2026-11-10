@@ -1,12 +1,13 @@
 import { pickLang, applyLang, safeStorage, t } from './i18n.js';
 import { STRINGS } from './strings.js';
-import { parseNumber, yearlyCost, formatCHF } from './calc.js';
+import { parseNumber, yearlyCost, formatCHF, calcHint } from './calc.js';
 import { BOOKING_URL, CONTACT_EMAIL, bookingHref, isBookingLive } from './config.js';
 import { initParticles } from './particles.js';
 
 const toggle = document.querySelector('.lang-toggle');
 const form = document.querySelector('#calc-form');
 const result = document.querySelector('#calc-result');
+const hint = document.querySelector('#calc-hint');
 let lang = pickLang(safeStorage.get('lang'), navigator.languages || [navigator.language]);
 
 const updateCalc = () => {
@@ -20,6 +21,10 @@ const updateCalc = () => {
     return n;
   });
   result.textContent = formatCHF(yearlyCost(h, r), lang);
+  if (hint) {
+    const key = calcHint(hours.value, rate.value);
+    hint.textContent = key ? t(STRINGS, key, lang) : '';
+  }
 };
 
 const render = () => {

@@ -58,17 +58,18 @@
       <form id="calc-form" class="calc-form reveal" novalidate>
         <label class="field">
           <span class="field-k" data-i18n="calc.hours">Hours a week</span>
-          <input class="field-v" name="hours" type="text" inputmode="decimal" value="12" autocomplete="off" spellcheck="false">
+          <input class="field-v" id="calc-hours" name="hours" aria-describedby="calc-hint" type="text" inputmode="decimal" value="12" autocomplete="off" spellcheck="false">
         </label>
         <label class="field">
           <span class="field-k" data-i18n="calc.rate">Cost per hour, CHF</span>
-          <input class="field-v" name="rate" type="text" inputmode="decimal" value="32" autocomplete="off" spellcheck="false">
+          <input class="field-v" id="calc-rate" name="rate" aria-describedby="calc-hint" type="text" inputmode="decimal" value="32" autocomplete="off" spellcheck="false">
         </label>
         <div class="field field-result">
           <span class="field-k" id="calc-result-label" data-i18n="calc.result">A year</span>
-          <output id="calc-result" class="field-v" for="calc-form" aria-labelledby="calc-result-label" aria-live="polite">CHF 19,968</output>
+          <output id="calc-result" class="field-v" for="calc-hours calc-rate" aria-labelledby="calc-result-label">CHF 19,968</output>
         </div>
       </form>
+      <p class="calc-hint" id="calc-hint" aria-live="polite"></p>
       <p class="calc-note reveal" data-i18n="calc.note">Your own numbers; nothing is sent anywhere. Which of those hours really need a person?</p>
     </section>
 

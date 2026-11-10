@@ -181,6 +181,8 @@ input.field-v:focus { outline: none; border-bottom-color: var(--fg); }
 input.field-v:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
 input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--mut); }
 .field-result .field-v { border-bottom-color: transparent; white-space: nowrap; }
+.calc-hint { min-height: 1.4em; margin-top: 1rem; font-size: 0.9rem; color: var(--fg); }
+.calc-hint:empty { margin-top: 0; min-height: 0; }
 .calc-note { margin-top: 2rem; max-width: 46ch; font-size: 0.95rem; color: var(--mut); line-height: 1.6; }
 
 @media (max-width: 560px) {

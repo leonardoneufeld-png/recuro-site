@@ -31,3 +31,13 @@ export function formatCHF(amount, lang) {
   const sep = lang === 'de' ? '’' : ',';
   return `CHF ${String(Math.round(amount)).replace(/\B(?=(\d{3})+(?!\d))/g, sep)}`;
 }
+
+// Which hint (a STRINGS key) the calculator should show, or null. Blank is empty, not wrong.
+export function calcHint(rawHours, rawRate) {
+  const [h, r] = [rawHours, rawRate].map(parseNumber);
+  const unreadable = (raw, n) => Number.isNaN(n) && String(raw ?? '').trim() !== '';
+  if (unreadable(rawHours, h) || unreadable(rawRate, r)) return 'calc.hintNumber';
+  if (h > HOURS_MAX) return 'calc.hintMaxHours';
+  if (r > RATE_MAX) return 'calc.hintMaxRate';
+  return null;
+}

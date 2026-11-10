@@ -45,6 +45,9 @@ export const STRINGS = {
   'calc.hours': { en: 'Hours a week', de: 'Stunden pro Woche' },
   'calc.rate': { en: 'Cost per hour, CHF', de: 'Kosten pro Stunde, CHF' },
   'calc.result': { en: 'A year', de: 'Pro Jahr' },
+  'calc.hintNumber': { en: 'Please enter a number, for example 12.', de: 'Bitte geben Sie eine Zahl ein, zum Beispiel 12.' },
+  'calc.hintMaxHours': { en: 'The maximum is 168 hours a week.', de: 'Maximal 168 Stunden pro Woche.' },
+  'calc.hintMaxRate': { en: 'The maximum is CHF 1,000 an hour.', de: 'Maximal CHF 1’000 pro Stunde.' },
   'calc.note': {
     en: 'Your own numbers; nothing is sent anywhere. Which of those hours really need a person?',
     de: 'Ihre eigenen Zahlen, es wird nichts übermittelt. Welche dieser Stunden brauchen wirklich einen Menschen?',
