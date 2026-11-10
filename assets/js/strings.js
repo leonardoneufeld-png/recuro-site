@@ -7,7 +7,7 @@ export const STRINGS = {
   },
   'meta.description': {
     en: 'Recuro builds small AI systems for food businesses in Switzerland: shift planning, ordering, stock counts, cost of goods and invoices. Book a free 30-minute call.',
-    de: 'Recuro baut kleine KI-Systeme für Gastronomie und Bäckereien in der Schweiz: Schichtplanung, Bestellungen, Inventur, Warenkosten und Rechnungen. Kostenloses 30-Minuten-Gespräch buchen.',
+    de: 'Recuro baut kleine KI-Systeme für Gastronomie und Bäckereien in der Schweiz: Schichtplanung, Bestellungen, Inventur, Wareneinsatz und Rechnungen. Kostenloses 30-Minuten-Gespräch buchen.',
   },
   'meta.legalTitle': { en: 'Impressum & privacy · Recuro', de: 'Impressum & Datenschutz · Recuro' },
   'meta.legalDescription': {
@@ -110,7 +110,7 @@ export const STRINGS = {
   'case.stat1.value': { en: '4 h', de: '4 h' },
   'case.stat1.label': {
     en: 'a month saved on overtime checks (measured)',
-    de: 'pro Monat weniger für Überstundenkontrollen (gemessen)',
+    de: 'pro Monat gespart bei Überstundenkontrollen (gemessen)',
   },
   'case.stat2.value': { en: '−90%', de: '−90 %' },
   'case.stat2.label': {
@@ -118,7 +118,7 @@ export const STRINGS = {
     de: 'KI-Kosten pro Anfrage, verglichen mit der ersten Version',
   },
   'case.costNote': { en: 'Early numbers, being measured.', de: 'Erste Zahlen, Messung läuft.' },
-  'case.stat3.value': { en: '1,700+', de: '1700+' },
+  'case.stat3.value': { en: '1,700+', de: '1’700+' },
   'case.stat3.label': { en: 'automated tests, 99% coverage', de: 'automatisierte Tests, 99 % Abdeckung' },
   'case.photoAlt': { en: 'The counter of the bakery café', de: 'Die Theke des Bäckerei-Cafés' },
 
@@ -137,7 +137,7 @@ export const STRINGS = {
     en: 'VIGO Coffee, Chicago · Operations Manager. Returning customers +70%, raw material costs from 35% to 25%.',
     de: 'VIGO Coffee, Chicago · Operations Manager. Stammkunden +70 %, Rohstoffkosten von 35 % auf 25 %.',
   },
-  'about.link': { en: 'Full background', de: 'Werdegang und Projekte' },
+  'about.link': { en: 'Full background', de: 'Der ganze Werdegang' },
   'about.photoAlt': { en: 'Portrait of Leo Neufeld', de: 'Porträt von Leo Neufeld' },
 
   'book.eyebrow': { en: '30 minutes', de: '30 Minuten' },
