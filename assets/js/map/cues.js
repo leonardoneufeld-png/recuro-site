@@ -111,8 +111,10 @@ function flowShot(aspect, k) {
   return { target: [0, (centreFromTop - 0.5) * visibleH, 0], distance, polar: Math.PI / 2, azimuth: 0, shiftX: 0 };
 }
 
-// One shot per stop 0..7.
-export function shotsFor(aspect) {
+const lerp = (a, b, t) => a + (b - a) * t;
+const copyShot = (s) => ({ ...s, target: [...s.target] });
+
+function buildShots(aspect) {
   const portrait = aspect < 1;
   const k = portrait ? 1 : 0;
   const shots = [{
@@ -132,15 +134,27 @@ export function shotsFor(aspect) {
   return shots;
 }
 
-const lerp = (a, b, t) => a + (b - a) * t;
-const copyShot = (s) => ({ ...s, target: [...s.target] });
+// The table only depends on the aspect, so it is built once per aspect (a few at most: window sizes seen so far).
+const MAX_CACHED = 8;
+const tables = new Map();
+function table(aspect) {
+  if (!tables.has(aspect)) {
+    if (tables.size >= MAX_CACHED) tables.clear();
+    tables.set(aspect, buildShots(aspect));
+  }
+  return tables.get(aspect);
+}
+
+// One shot per stop 0..7. Callers get their own copies; the cached table is never handed out.
+export const shotsFor = (aspect) => table(aspect).map(copyShot);
+
 const HOLD = 0.6;
 
 // Holds a stop's shot for its first 60% (the hero for 85%), then blends to the next shot over the rest.
 export function shotAt(T, aspect) {
-  const t = clamp(T, 0, T_MAX);
+  const t = Number.isFinite(T) ? clamp(T, 0, T_MAX) : 0; // NaN or Infinity from a bad measurement counts as the hero
   const n = Math.floor(t);
-  const shots = shotsFor(aspect);
+  const shots = table(aspect);
   const f = t - n;
   const hold = n === 0 ? HERO.hold : HOLD;
   if (n >= STOPS - 1 || f <= hold) return copyShot(shots[n]);
