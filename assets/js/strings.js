@@ -29,12 +29,12 @@ export const STRINGS = {
 
   'hero.title': { en: 'Every week, the same hours.', de: 'Jede Woche dieselben Stunden.' },
   'hero.sub': {
-    en: 'Small AI systems for cafés, bakeries and restaurants, built for the work that comes back every week.',
-    de: 'Kleine KI-Systeme für Cafés, Bäckereien und Restaurants, gebaut für die Arbeit, die jede Woche wiederkommt.',
+    en: 'Sales, stock, orders, staff hours, costs and invoices on one platform, for cafés, bakeries and restaurants.',
+    de: 'Verkauf, Lager, Bestellungen, Arbeitszeiten, Wareneinsatz und Rechnungen auf einer Plattform, für Cafés, Bäckereien und Restaurants.',
   },
   'hero.photoAlt': {
-    en: 'Inside a bakery café in Bern, early morning',
-    de: 'In einem Bäckerei-Café in Bern, früh am Morgen',
+    en: 'Six brushed-steel panels floating apart in a dark room',
+    de: 'Sechs gebürstete Stahlplatten, die einzeln in einem dunklen Raum schweben',
   },
 
   'calc.eyebrow': { en: 'Repeat work, in numbers', de: 'Routinearbeit in Zahlen' },
@@ -53,44 +53,104 @@ export const STRINGS = {
     de: 'Ihre eigenen Zahlen, es wird nichts übermittelt. Welche dieser Stunden brauchen wirklich einen Menschen?',
   },
 
-  'services.eyebrow': { en: 'What Recuro builds', de: 'Was Recuro baut' },
-  'services.intro': {
-    en: 'Each piece starts small and fits the way your team already works.',
-    de: 'Jedes Modul startet klein und passt zu den Abläufen, die Ihr Team schon hat.',
+  'map.today': { en: 'Today', de: 'Heute' },
+  'map.built': { en: 'What Recuro builds', de: 'Was Recuro baut' },
+  'map.flow': { en: 'Where it goes', de: 'Wohin es fliesst' },
+
+  'map.pos.title': { en: 'Till and sales', de: 'Kasse und Verkauf' },
+  'map.pos.today': {
+    en: 'The till records every sale. The report is printed at closing and filed.',
+    de: 'Die Kasse erfasst jeden Verkauf. Der Tagesabschluss wird gedruckt und abgelegt.',
   },
-  'services.staff.title': { en: 'Staff hours and shift planning', de: 'Arbeitszeiten und Schichtplanung' },
-  'services.staff.body': {
+  'map.pos.built': {
+    en: 'The till on the counter stays. Recuro reads it: what sold, at what hour, on which day.',
+    de: 'Die Kasse auf der Theke bleibt. Recuro liest sie aus: was verkauft wurde, zu welcher Stunde, an welchem Tag.',
+  },
+  'map.pos.flow': {
+    en: 'Every sale lowers the stock count and shows ordering what next week will need.',
+    de: 'Jeder Verkauf senkt den Lagerbestand und zeigt der Bestellung, was nächste Woche gebraucht wird.',
+  },
+
+  'map.stock.title': { en: 'Stock', de: 'Lager' },
+  'map.stock.today': {
+    en: 'Counted by hand with a clipboard after closing, once a week if the week allows.',
+    de: 'Von Hand gezählt, mit Klemmbrett nach Ladenschluss, einmal pro Woche, wenn die Woche es zulässt.',
+  },
+  'map.stock.built': {
+    en: 'A running count. Sales take stock out, deliveries put it back, and a short spot check corrects the difference.',
+    de: 'Ein laufender Bestand. Verkäufe buchen ab, Lieferungen buchen zu, und eine kurze Stichprobe korrigiert die Differenz.',
+  },
+  'map.stock.flow': {
+    en: 'When an item runs low, ordering already knows.',
+    de: 'Wird ein Artikel knapp, weiss die Bestellung es schon.',
+  },
+
+  'map.ordering.title': { en: 'Ordering and suppliers', de: 'Bestellungen und Lieferanten' },
+  'map.ordering.today': {
+    en: 'Orders go out by phone and WhatsApp, from memory, usually the evening before.',
+    de: 'Bestellt wird per Telefon und WhatsApp, aus dem Kopf, meist am Vorabend.',
+  },
+  'map.ordering.built': {
+    en: 'The system drafts each order from stock and sales. A person checks it before it goes to the supplier.',
+    de: 'Das System erstellt den Bestellvorschlag aus Bestand und Verkäufen. Ein Mensch prüft ihn, bevor er an den Lieferanten geht.',
+  },
+  'map.ordering.flow': {
+    en: 'The sent order waits for its delivery note and its invoice.',
+    de: 'Die verschickte Bestellung wartet auf Lieferschein und Rechnung.',
+  },
+
+  'map.staff.title': { en: 'Staff hours and payroll', de: 'Arbeitszeiten und Lohn' },
+  'map.staff.tag': { en: 'Running at a client', de: 'Läuft bei einem Kunden' },
+  'map.staff.today': {
+    en: 'Timesheets on paper, shift swaps in a group chat, and an Excel file at month end.',
+    de: 'Stundenzettel auf Papier, Schichttausch im Gruppenchat und am Monatsende eine Excel-Datei.',
+  },
+  'map.staff.built': {
     en: 'Staff log hours, swap shifts, report sick and request days off in a chat. The monthly statement is ready at month end.',
     de: 'Mitarbeitende erfassen Stunden, tauschen Schichten, melden sich krank und beantragen freie Tage im Chat. Die Monatsabrechnung steht am Monatsende bereit.',
   },
-  'services.staff.tag': { en: 'Running at a client', de: 'Läuft bei einem Kunden' },
-  'services.ordering.title': { en: 'Semi-automatic ordering', de: 'Halbautomatische Bestellungen' },
-  'services.ordering.body': {
-    en: 'The system drafts the order from stock and sales. A person checks it before it goes to the supplier.',
-    de: 'Das System erstellt den Bestellvorschlag aus Bestand und Verkäufen. Ein Mensch prüft ihn, bevor er an den Lieferanten geht.',
+  'map.staff.flow': {
+    en: 'Hours reach payroll already checked, and staff cost sits next to sales for each day.',
+    de: 'Die Stunden kommen geprüft in der Lohnbuchhaltung an, und die Personalkosten stehen pro Tag neben dem Umsatz.',
   },
-  'services.stock.title': { en: 'Automatic stock counts', de: 'Automatische Inventur' },
-  'services.stock.body': {
-    en: 'Stock levels stay current without a clipboard at closing time.',
-    de: 'Der Bestand bleibt aktuell, ohne Klemmbrett nach Ladenschluss.',
+
+  'map.cogs.title': { en: 'Cost of goods', de: 'Wareneinsatz' },
+  'map.cogs.today': {
+    en: 'Calculated once, when the menu was written. Supplier prices have changed since.',
+    de: 'Einmal kalkuliert, als die Karte geschrieben wurde. Die Lieferantenpreise haben sich seither geändert.',
   },
-  'services.cogs.title': { en: 'Cost of goods', de: 'Warenkosten' },
-  'services.cogs.body': {
-    en: 'What each product really costs, updated when supplier prices change.',
-    de: 'Was jedes Produkt wirklich kostet, aktualisiert, wenn sich Lieferantenpreise ändern.',
+  'map.cogs.built': {
+    en: 'What each product costs to make, recalculated when a supplier invoice shows a new price.',
+    de: 'Was jedes Produkt in der Herstellung kostet, neu berechnet, sobald eine Lieferantenrechnung einen neuen Preis zeigt.',
   },
-  'services.invoices.title': { en: 'Invoices', de: 'Rechnungen' },
-  'services.invoices.body': {
-    en: 'Generated from what was delivered or sold, ready to check and send.',
-    de: 'Erstellt aus dem, was geliefert oder verkauft wurde, bereit zum Prüfen und Versenden.',
+  'map.cogs.flow': {
+    en: 'Margin per product, next to what sold.',
+    de: 'Die Marge pro Produkt, neben den Verkaufszahlen.',
   },
-  'services.scale': {
-    en: 'It starts with one café. The same setup works across several locations.',
-    de: 'Es beginnt mit einem Café. Dasselbe System funktioniert auch über mehrere Standorte.',
+
+  'map.invoices.title': { en: 'Invoices', de: 'Rechnungen' },
+  'map.invoices.today': {
+    en: 'Supplier invoices pile up in a folder until someone types them in.',
+    de: 'Lieferantenrechnungen sammeln sich im Ordner, bis jemand sie abtippt.',
   },
-  'services.photoAlt': {
-    en: 'Hands weighing dough on a kitchen scale',
-    de: 'Hände wiegen Teig auf einer Küchenwaage',
+  'map.invoices.built': {
+    en: 'Incoming invoices are read and matched to the order and the delivery. Outgoing ones are drawn up from what was delivered.',
+    de: 'Eingehende Rechnungen werden gelesen und mit Bestellung und Lieferung abgeglichen. Ausgehende entstehen aus dem, was geliefert wurde.',
+  },
+  'map.invoices.flow': {
+    en: 'New prices go to cost of goods. Checked invoices are ready for the bookkeeper.',
+    de: 'Neue Preise gehen in den Wareneinsatz. Geprüfte Rechnungen liegen für die Buchhaltung bereit.',
+  },
+
+  'flow.eyebrow': { en: 'One platform', de: 'Eine Plattform' },
+  'flow.title': { en: 'The routine runs by itself.', de: 'Die Routine läuft von selbst.' },
+  'flow.body': {
+    en: 'A sale lowers the stock. Low stock drafts an order. The invoice is matched to that order, hours reach payroll, and the cost of each product stays current. Someone on the team approves what matters. The rest of the day goes to guests and sales.',
+    de: 'Ein Verkauf senkt den Bestand. Ein knapper Bestand löst einen Bestellvorschlag aus. Die Rechnung wird mit der Bestellung abgeglichen, die Stunden kommen in der Lohnbuchhaltung an, und der Wareneinsatz pro Produkt bleibt aktuell. Jemand im Team gibt frei, was zählt. Der Rest des Tages gehört den Gästen und dem Verkauf.',
+  },
+  'flow.alt': {
+    en: 'The six panels joined by lines of light into one map',
+    de: 'Die sechs Platten, durch Lichtlinien zu einer Karte verbunden',
   },
 
   'rule.eyebrow': { en: 'How it works', de: 'So funktioniert es' },
