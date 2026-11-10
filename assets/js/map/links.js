@@ -20,6 +20,10 @@ export function buildLinks(T3, links, signal = '#f0c987') {
   const dir = new T3.Vector3();
   const a = new T3.Vector3();
   const b = new T3.Vector3();
+  const pa = [0, 0, 0];
+  const pb = [0, 0, 0];
+  const ca = [0, 0, 0];
+  const cb = [0, 0, 0];
   const items = links.map((link) => {
     const line = new T3.Mesh(box, lineMat);
     const pulses = Array.from({ length: PULSES }, () => new T3.Mesh(box, pulseMat));
@@ -46,8 +50,10 @@ export function buildLinks(T3, links, signal = '#f0c987') {
       const to = positions[link.to];
       line.visible = amount > 0.002;
       if (!line.visible) { pulses.forEach((p) => { p.visible = false; }); return; }
-      a.fromArray(edgePoint(from.toArray(), to.toArray(), HALF_W, HALF_H, GAP));
-      b.fromArray(edgePoint(to.toArray(), from.toArray(), HALF_W, HALF_H, GAP));
+      from.toArray(ca);
+      to.toArray(cb);
+      a.fromArray(edgePoint(ca, cb, HALF_W, HALF_H, GAP, pa));
+      b.fromArray(edgePoint(cb, ca, HALF_W, HALF_H, GAP, pb));
       dir.subVectors(b, a);
       const full = dir.length();
       dir.divideScalar(full || 1);
