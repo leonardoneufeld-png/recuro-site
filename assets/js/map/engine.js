@@ -6,15 +6,15 @@ import { damp, panelPose, focusAmount } from './motion.js';
 
 const INK = '#14110e';
 // ACES darkens the background a little; this gain makes the canvas match --ink on the page around it
-const BG_GAIN = 3.0;
-const EXPOSURE = 1.0;
+const BG_GAIN = 1.67;
+const EXPOSURE = 1.8;
 const PHONE_DPR = 1.75;
 const DESKTOP_DPR = 2;
 const LOW_DPR = 1.25;
 const FPS_WINDOW = 60;
 const FPS_GRACE_MS = 2000;
 const POINTER_TILT = 0.12;
-const RECEDE = 0.55; // how much panels out of focus dim during a beat, so the text over them stays readable
+const RECEDE = 1; // out-of-focus panels dim by this much and shrink a little during a beat: only the plate in focus is lit
 
 const mq = (q) => window.matchMedia(q);
 
@@ -47,7 +47,7 @@ export async function startMap({ root, canvas }) {
   const camera = new T3.PerspectiveCamera(30, 1, 1, 600);
   const target = new T3.WebGLRenderTarget(4, 4, { type: T3.HalfFloatType, samples: 4 });
   const composer = new T3.EffectComposer(renderer, target);
-  const bloom = new T3.UnrealBloomPass(new T3.Vector2(4, 4), 0.3, 0.45, 1.3);
+  const bloom = new T3.UnrealBloomPass(new T3.Vector2(4, 4), 0.45, 0.5, 1.15);
   composer.addPass(new T3.RenderPass(scene, camera));
   composer.addPass(bloom);
   composer.addPass(new T3.OutputPass());
@@ -55,9 +55,8 @@ export async function startMap({ root, canvas }) {
   scene.environment = studioMod.buildEnvironment(T3, renderer);
   scene.environmentIntensity = 1;
   const panels = panelsMod.buildPanels(T3, PANEL_IDS, ICONS);
-  const baseColours = new Map();
   for (const id of PANEL_IDS) for (const m of [panels.byId[id].userData.face, panels.byId[id].userData.bevel]) {
-    m.emissive.set(signal); m.emissiveIntensity = 0; baseColours.set(m, m.color.clone());
+    m.emissive.set(signal); m.emissiveIntensity = 0;
   }
   const links = linksMod.buildLinks(T3, LINKS, signal);
   scene.add(panels.group, links.group);
@@ -123,13 +122,15 @@ export async function startMap({ root, canvas }) {
     const anyFocus = Math.max(...focus);
     PANEL_IDS.forEach((id, i) => {
       glint[id] *= Math.exp(-dt * 2.4);
-      const bright = 1 - RECEDE * anyFocus * (1 - focus[i]);
+      const away = anyFocus * (1 - focus[i]);
+      const bright = 1 - RECEDE * away; // opacity: a dimmed plate melts into the dark room instead of showing as a black slab
+      panels.byId[id].scale.setScalar(1 - 0.3 * away);
       const g = Math.max(glint[id], ring * 0.75);
       const { face: f, bevel } = panels.byId[id].userData;
       bevel.emissiveIntensity = g * 1.4;
       f.emissiveIntensity = g * 0.18;
-      f.color.copy(baseColours.get(f)).multiplyScalar(bright);
-      bevel.color.copy(baseColours.get(bevel)).multiplyScalar(bright);
+      f.opacity = bevel.opacity = bright;
+      panels.byId[id].visible = bright > 0.02;
     });
     links.update(positions, amounts, time, ring);
 

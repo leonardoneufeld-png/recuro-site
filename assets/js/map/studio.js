@@ -3,14 +3,16 @@ const ROOM = '#14110e';
 const ROOM_SIZE = 140;
 
 // [x, y, z, width, height, intensity, warm, gradient]; every light faces the middle of the room.
-// The big ones fade across their face so a flat plate shows a soft gradient, not one flat white.
+// Luminances stay under the bloom threshold in engine.js, so the steel never glows; only the links and glints do.
+// The key is a small-ish box behind the camera: at any plate angle it covers only part of the face, with a soft edge
+// (gradient) crossing it. Everything else is dark, so the rest of the face falls to mid-grey.
 const LIGHTS = [
-  [-26, 30, 44, 80, 50, 2.6, 0.5, true], // key: large, soft, up and to the left, behind the camera
-  [58, 4, 12, 8, 80, 15, 0, false], // strip right
-  [-60, -6, -6, 6, 80, 11, 0, false], // strip left
-  [10, 70, -12, 60, 6, 7, 0.2, false], // overhead strip
-  [30, -10, 55, 90, 70, 0.55, 0.3, true], // dim fill from the front right so shadowed steel is not pure black
-  [0, -45, 30, 90, 14, 0.7, 0.4, false], // faint floor bounce
+  [-18, 14, 60, 40, 26, 1.1, 0.5, true], // key, up and to the left, behind the camera
+  [58, 6, 14, 6, 80, 1.0, 0, false], // strip right: lights the right bevels
+  [-58, -4, -4, 5, 80, 0.85, 0, false], // strip left
+  [10, 66, -10, 60, 5, 0.9, 0.2, false], // overhead strip: lights the top bevels
+  [30, -10, 55, 90, 70, 0.085, 0.3, true], // very dim fill so shadowed steel is not black
+  [0, -50, 25, 80, 8, 0.3, 0.4, false], // faint floor strip for the bottom bevels
 ];
 
 function fadeTexture(T3) {
@@ -18,9 +20,12 @@ function fadeTexture(T3) {
   c.width = c.height = 128;
   const g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 0, 128, 128);
+  // steep falloff: a bright band, then quickly dark (stops are sRGB, so 130 is about a fifth of the light)
   grad.addColorStop(0, '#ffffff');
-  grad.addColorStop(0.55, '#a8a8a8');
-  grad.addColorStop(1, '#3a3a3a');
+  grad.addColorStop(0.3, '#ececec');
+  grad.addColorStop(0.5, '#828282');
+  grad.addColorStop(0.72, '#2d2d2d');
+  grad.addColorStop(1, '#1c1c1c');
   g.fillStyle = grad;
   g.fillRect(0, 0, 128, 128);
   return new T3.CanvasTexture(c);

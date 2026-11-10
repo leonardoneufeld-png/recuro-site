@@ -7,15 +7,15 @@ const GAP = 0.5;
 const LINE = 0.07;
 const PULSES = 2;
 const PULSE_SPEED = 0.16;
-const HDR = 1.7; // above 1 so the bloom threshold catches it
+const HDR = 1.6; // above the bloom threshold, so only the links and glints glow
 
 export function buildLinks(T3, links, signal = '#f0c987') {
   const group = new T3.Group();
   const box = new T3.BoxGeometry(1, 1, 1);
   const base = new T3.Color(signal);
   const mk = (k) => new T3.MeshBasicMaterial({ color: base.clone().multiplyScalar(k), blending: T3.AdditiveBlending, transparent: true, depthWrite: false });
-  const lineMat = mk(HDR * 0.8);
-  const pulseMat = mk(HDR * 2.2);
+  const lineMat = mk(HDR);
+  const pulseMat = mk(HDR * 2.6);
   const X = new T3.Vector3(1, 0, 0);
   const dir = new T3.Vector3();
   const a = new T3.Vector3();
@@ -37,8 +37,8 @@ export function buildLinks(T3, links, signal = '#f0c987') {
   };
 
   function update(positions, amounts, time, boost = 0) {
-    lineMat.color.copy(base).multiplyScalar(HDR * 0.8 * (1 + boost * 1.6));
-    pulseMat.color.copy(base).multiplyScalar(HDR * 2.2 * (1 + boost));
+    lineMat.color.copy(base).multiplyScalar(HDR * (1 + boost * 1.6));
+    pulseMat.color.copy(base).multiplyScalar(HDR * 2.4 * (1 + boost));
     const width = LINE * (1 + boost * 1.1);
     items.forEach(({ link, line, pulses }, i) => {
       const amount = amounts[i];
@@ -59,7 +59,7 @@ export function buildLinks(T3, links, signal = '#f0c987') {
         p.visible = lit || k === 0;
         if (!p.visible) return;
         const phase = lit ? (time * PULSE_SPEED + k / PULSES + i * 0.31) % 1 : 1;
-        place(p, a, dir, 0, Math.min(drawn, phase * full), width * 2.4, lit ? 0.9 : 0.5);
+        place(p, a, dir, 0, Math.min(drawn, phase * full), width * 1.25, lit ? 2.6 : 0.7);
       });
     });
   }

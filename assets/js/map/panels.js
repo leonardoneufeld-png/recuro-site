@@ -42,10 +42,10 @@ export function buildPanels(T3, ids, icons) {
   const materials = [];
   for (const id of ids) {
     const face = new T3.MeshPhysicalMaterial({
-      color: 0xd9d6d0, metalness: 1, roughness: 0.42, roughnessMap: textures.roughnessMap,
-      anisotropy: 0.85, anisotropyMap: textures.anisotropyMap,
+      color: 0xd9d6d0, metalness: 1, roughness: 0.34, roughnessMap: textures.roughnessMap,
+      anisotropy: 0.85, anisotropyMap: textures.anisotropyMap, transparent: true,
     });
-    const bevel = new T3.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.1 });
+    const bevel = new T3.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.1, transparent: true });
     const mesh = new T3.Mesh(plateGeometry(T3, icons[id]), [face, bevel]);
     const panel = new T3.Group();
     panel.add(mesh);
