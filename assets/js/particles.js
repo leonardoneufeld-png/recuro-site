@@ -89,6 +89,7 @@ const rasterise = (el, w, h, dpr) => {
   return samplePoints(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height, Math.round(STEP * dpr), dpr);
 };
 
+// Returns destroy(): removes the canvas, listeners and observers and restores the plain sentence.
 export const initParticles = (el) => {
   const host = el.parentElement;
   const canvas = document.createElement('canvas');
@@ -96,7 +97,8 @@ export const initParticles = (el) => {
   canvas.setAttribute('aria-hidden', 'true');
   host.insertBefore(canvas, el.nextSibling);
   const ctx = canvas.getContext('2d');
-  let field = null, pointer = null, raf = 0, visible = false, color = '', dpr = 1;
+  let field = null, pointer = null, raf = 0, queued = 0, visible = false, inView = false, color = '', dpr = 1, dead = false;
+  let ro = null, mo = null;
 
   const draw = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -112,8 +114,21 @@ export const initParticles = (el) => {
   };
   const kick = () => { if (field && visible && !raf) raf = requestAnimationFrame(frame); };
 
+  // first time on screen (with a field to show): the dots gather into the sentence
+  const io = new IntersectionObserver(([e]) => { inView = e.isIntersecting; reveal(); }, { rootMargin: '0px 0px -10% 0px' });
+  const reveal = () => {
+    if (!inView || !field || visible) return;
+    io.disconnect();
+    visible = true;
+    scatter(field, ENTRANCE);
+    kick();
+  };
+
   const build = () => {
+    if (dead) return;
     try {
+      // a failed build removes the canvas; a later successful one must put it back
+      if (!canvas.isConnected) host.insertBefore(canvas, el.nextSibling);
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       color = getComputedStyle(host).color;
       const w = el.offsetWidth + PAD * 2, h = el.offsetHeight + PAD * 2;
@@ -123,7 +138,7 @@ export const initParticles = (el) => {
       if (!points.length) throw new Error('no ink sampled');
       field = createField(points);
       el.classList.add('is-particles');
-      if (visible) draw();
+      if (visible) draw(); else reveal();
     } catch {
       // fall back to the plain sentence
       el.classList.remove('is-particles');
@@ -132,34 +147,37 @@ export const initParticles = (el) => {
     }
   };
 
-  let queued = 0;
   const rebuild = () => { if (!queued) queued = requestAnimationFrame(() => { queued = 0; build(); }); };
 
+  // listeners sit on the section: the canvas has pointer-events: none so the text stays selectable
   const local = (e) => {
     const r = canvas.getBoundingClientRect();
-    pointer = { x: e.clientX - r.left, y: e.clientY - r.top };
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    // far from the sentence: no push, and no frame loop running for the whole section
+    const near = x > -RADIUS && y > -RADIUS && x < r.width + RADIUS && y < r.height + RADIUS;
+    pointer = near ? { x, y } : null;
     kick();
   };
   const release = () => { pointer = null; kick(); };
-  canvas.addEventListener('pointermove', local);
-  canvas.addEventListener('pointerdown', local);
-  ['pointerleave', 'pointercancel', 'pointerup'].forEach((t) => canvas.addEventListener(t, release));
-
-  // first time on screen: the dots gather into the sentence
-  const io = new IntersectionObserver(([e]) => {
-    if (!e.isIntersecting || !field) return;
-    io.disconnect();
-    visible = true;
-    scatter(field, ENTRANCE);
-    kick();
-  }, { rootMargin: '0px 0px -10% 0px' });
+  const events = [['pointermove', local], ['pointerdown', local], ['pointerleave', release], ['pointercancel', release], ['pointerup', release]];
+  events.forEach(([t, f]) => host.addEventListener(t, f));
 
   (document.fonts?.ready ?? Promise.resolve()).then(() => {
+    if (dead) return;
     build();
     if (!field) return;
     io.observe(canvas);
-    new ResizeObserver(rebuild).observe(el);
+    ro = new ResizeObserver(rebuild); ro.observe(el);
     // the language toggle rewrites the sentence
-    new MutationObserver(rebuild).observe(el, { childList: true, characterData: true, subtree: true });
+    mo = new MutationObserver(rebuild); mo.observe(el, { childList: true, characterData: true, subtree: true });
   });
+
+  return () => {
+    dead = true;
+    io.disconnect(); ro?.disconnect(); mo?.disconnect();
+    cancelAnimationFrame(raf); cancelAnimationFrame(queued);
+    events.forEach(([t, f]) => host.removeEventListener(t, f));
+    el.classList.remove('is-particles');
+    canvas.remove();
+  };
 };

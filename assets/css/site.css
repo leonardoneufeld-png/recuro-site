@@ -48,6 +48,8 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+/* set by the inline head script for German visitors until main.js has translated the page; visibility keeps the layout */
+html.i18n-pending [data-i18n] { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 body {
@@ -227,8 +229,9 @@ input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--m
 /* ---------- rule ---------- */
 .rule { position: relative; overflow: clip; padding-block: var(--section); border-top: 1px solid var(--line); }
 /* ink-dot version of the sentence (particles.js); the DOM text stays for readers and copy */
-.particles { position: absolute; touch-action: pan-y; }
+.particles { position: absolute; pointer-events: none; }
 .rule-text.is-particles { color: transparent; }
+.rule-text { touch-action: pan-y; }
 .rule-text {
   font-size: var(--step-4); font-weight: 520; letter-spacing: -0.045em; line-height: 0.98;
   max-width: 17ch; text-wrap: balance;

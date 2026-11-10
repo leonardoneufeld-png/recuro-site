@@ -20,6 +20,22 @@
   <link rel="preload" href="assets/fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/img/hero.webp" as="image" fetchpriority="high">
   <link rel="stylesheet" href="assets/css/site.css">
+  <script>
+  (function () {
+    var d = document.documentElement, l = null, n = navigator.languages || [navigator.language];
+    try { l = localStorage.getItem('lang'); } catch (e) {}
+    if (l !== 'en' && l !== 'de') l = n.some(function (x) { return String(x).toLowerCase().indexOf('de') === 0; }) ? 'de' : 'en';
+    d.lang = l;
+    if (l !== 'de') return;
+    d.classList.add('i18n-pending');
+    // failsafe: never leave the page hidden if the module fails
+    setTimeout(function () { d.classList.remove('i18n-pending'); }, 1500);
+  })();
+  </script>
+  <link rel="modulepreload" href="assets/js/i18n.js">
+  <link rel="modulepreload" href="assets/js/strings.js">
+  <link rel="modulepreload" href="assets/js/calc.js">
+  <link rel="modulepreload" href="assets/js/config.js">
   <script type="module" src="assets/js/main.js"></script>
 </head>
 <body>

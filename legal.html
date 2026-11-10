@@ -7,6 +7,22 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <meta name="theme-color" content="#14110e">
   <link rel="stylesheet" href="/assets/css/site.css">
+  <script>
+  (function () {
+    var d = document.documentElement, l = null, n = navigator.languages || [navigator.language];
+    try { l = localStorage.getItem('lang'); } catch (e) {}
+    if (l !== 'en' && l !== 'de') l = n.some(function (x) { return String(x).toLowerCase().indexOf('de') === 0; }) ? 'de' : 'en';
+    d.lang = l;
+    if (l !== 'de') return;
+    d.classList.add('i18n-pending');
+    // failsafe: never leave the page hidden if the module fails
+    setTimeout(function () { d.classList.remove('i18n-pending'); }, 1500);
+  })();
+  </script>
+  <link rel="modulepreload" href="/assets/js/i18n.js">
+  <link rel="modulepreload" href="/assets/js/strings.js">
+  <link rel="modulepreload" href="/assets/js/calc.js">
+  <link rel="modulepreload" href="/assets/js/config.js">
   <script type="module" src="/assets/js/main.js"></script>
   <title data-i18n="meta.legalTitle">Impressum &amp; privacy · Recuro</title>
   <meta name="description" content="Who runs recuro.ch, and how the site handles your data." data-i18n-content="meta.legalDescription">
