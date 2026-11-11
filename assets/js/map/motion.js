@@ -16,6 +16,12 @@ export function focusAmount(T, stop) {
   return smoothstep((T - (stop - 0.2)) / 0.4) * (1 - smoothstep((T - (stop + 0.55)) / 0.4));
 }
 
+// Like focusAmount, but a plate also counts as present while the camera travels to or from it, so during a transition
+// the plate being left and the plate being approached both stay solid and only the others recede.
+export function presenceAmount(T, stop) {
+  return smoothstep((T - (stop - 0.55)) / 0.35) * (1 - smoothstep((T - (stop + 0.6)) / 0.4));
+}
+
 // Scratch arrays, filled in place every call so the frame loop allocates nothing.
 const drift = [0, 0, 0];
 const spin = [0, 0, 0];
