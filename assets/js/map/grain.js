@@ -1,6 +1,6 @@
 // Fine film grain, added to the last pass of the composer (the output pass), so it lies over steel, light and room alike.
 // Monochrome, weighted by brightness (none in black, none in the brightest light), refreshed 24 times a second.
-export const GRAIN = Object.freeze({ amount: 0.03, hz: 24, cell: 1.2 });
+export const GRAIN = Object.freeze({ amount: 0.025, hz: 24, cell: 1.0 });
 
 const FUNCTION = `
 uniform float uGrain;
