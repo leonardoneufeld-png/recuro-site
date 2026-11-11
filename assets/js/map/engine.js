@@ -23,7 +23,7 @@ const BLOOM_BASE = 0.4;
 const BLOOM_GOLD = 0.15;
 const ENV_GOLD = 0.12;
 const HAZE_GAIN = 0.04;
-const HOLE_HDR = 0.75;
+const HOLE_HDR = 0.85;
 const WAVE_CAP = 0.3; // the finale wave brightens an icon by at most this much, so it never flares to white
 const COOL_STEEL = [0.84, 0.85, 0.87];
 const WARM_STEEL = [0.9, 0.87, 0.82]; // steel stays steel: the gold comes from lights, not from tinting the metal
@@ -93,7 +93,7 @@ export async function startMap({ root, canvas }) {
     const sceneTarget = composer.readBuffer;
     const samples = coarse ? 2 : 4;
     sceneTarget.samples = samples;
-    bloom = new T3.UnrealBloomPass(new T3.Vector2(4, 4), BLOOM_BASE, 0.35, 1.15);
+    bloom = new T3.UnrealBloomPass(new T3.Vector2(4, 4), BLOOM_BASE, 0.35, 1.1);
     bloom.enabled = hdr;
     composer.addPass(new T3.RenderPass(scene, camera));
     composer.addPass(bloom);
@@ -219,8 +219,8 @@ export async function startMap({ root, canvas }) {
         hole.material.uniforms.uTime.value = time + i * 1.7;
         glow.setHalo(i, halosOn ? (lit[i] * 0.02 * (0.5 + gold) + w * 0.05) * bright : 0);
         // the lower plates reflect a darker part of the room, so they get a little more colour to read as bright as the top row
-        f.color.copy(coolSteel).lerp(warmSteel, gold).multiplyScalar(1 + 0.32 * assembleNow * Math.min(1, Math.max(0, -layout[id][1] / 6.5)));
-        bevel.color.copy(steel.setRGB(1, 1, 1).lerp(warmSteel, gold * 0.6));
+        f.color.copy(coolSteel).lerp(warmSteel, gold).multiplyScalar(1 + assembleNow * (0.5 * Math.min(1, Math.max(0, -layout[id][1] / 6.5)) + 0.35 * Math.min(1, Math.max(0, layout[id][0] / 20))));
+        bevel.color.copy(steel.setRGB(0.75, 0.75, 0.75).lerp(warmSteel, gold * 0.3));
       }
       const gain = 0.8 + 0.4 * gold;
       for (let i = 0; i < N; i++) panels.byId[PANEL_IDS[i]].updateMatrixWorld(true); // links read the plates' real rims

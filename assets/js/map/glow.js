@@ -48,9 +48,9 @@ varying vec2 vRaw;
 void main() {
   float m = texture2D(uMap, vRaw / ${HOLE_SPAN.toFixed(1)} + 0.5).r;
   float swell = 1.0 + 0.06 * sin(uTime * 0.7 + vRaw.x * 0.8 + vRaw.y * 0.55) + 0.03 * sin(uTime * 1.3 - vRaw.y * 1.1);
-  vec3 warm = vec3(1.0, 0.66, 0.26);
-  vec3 c = mix(uColor * 0.5, uColor * 1.1 + warm * 0.3, m);
-  gl_FragColor = vec4(c * (0.3 + 0.7 * m) * uGain * swell, 1.0);
+  vec3 hot = vec3(1.0, 0.46, 0.1); // warmer than the signal gold, toward the middle of each cut-out
+  vec3 c = mix(uColor * 0.7, hot * 1.3, m);
+  gl_FragColor = vec4(c * (0.55 + 0.45 * m) * uGain * swell, 1.0);
 }`;
 const HOLE_VERT = /* glsl */ `
 varying vec2 vRaw;
@@ -77,7 +77,7 @@ function holeTexture(T3, outlines, scale) {
   g.save();
   g.clip(path);
   g.lineJoin = 'round';
-  g.strokeStyle = 'rgba(0,0,0,0.05)';
+  g.strokeStyle = 'rgba(0,0,0,0.035)';
   for (let w = 56; w >= 2; w -= 2) { g.lineWidth = w; g.stroke(path); } // only the inside half shows: a smooth fall-off toward the walls
   g.restore();
   return new T3.CanvasTexture(c);

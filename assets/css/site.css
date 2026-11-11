@@ -16,6 +16,7 @@
   --signal: #f0c987;
   --header-h: 5.2rem; /* main.js replaces this with the measured header height */
   --glass-opacity: 0.88; /* ink glass behind text over the live canvas; contrast over the brightest plate is tested */
+  --glass-phone-opacity: 0.95; /* phone: plates slide behind the text, so nothing readable may show through */
 
   /* semantic: light (bone) by default */
   --bg: var(--paper);
@@ -240,8 +241,8 @@ html.map-live:not(.map-shown) :is(.beat-still, .flow-still) { visibility: visibl
   .beat[data-panel='stock'] .beat-text, .beat[data-panel='staff'] .beat-text, .beat[data-panel='invoices'] .beat-text,
   .beat[data-panel='stock'] .beat-still, .beat[data-panel='staff'] .beat-still, .beat[data-panel='invoices'] .beat-still { grid-column: 1; grid-row: auto; }
   .beat-still { order: -1; }
-  /* over the live canvas the text sits on the same ink glass as on desktop, so no plate reads through it */
-  html.map-live .beat-text { background: rgb(20 17 14 / var(--glass-opacity)); box-shadow: 0 0 0 1.25rem rgb(20 17 14 / var(--glass-opacity)); }
+  /* over the live canvas the text sits on ink glass at least as dense as on desktop, so no plate reads through it */
+  html.map-live .beat-text { background: rgb(20 17 14 / var(--glass-phone-opacity)); box-shadow: 0 0 0 1.25rem rgb(20 17 14 / var(--glass-phone-opacity)); }
   .flow-body { grid-column: 1 / -1; }
   .flow-still { aspect-ratio: 16 / 10; top: 52svh; }
 }
