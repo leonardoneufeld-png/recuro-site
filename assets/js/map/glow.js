@@ -26,7 +26,7 @@ varying vec2 vUv;
 void main() {
   vec2 d = (vUv - uCentre) * vec2(uAspect, 1.0) / uRadius;
   // the Gaussian is cut to exactly 0 before the screen edge, and fades out before the text boxes: no edge anywhere
-  float light = exp(-dot(d, d)) * (1.0 - smoothstep(1.1, 2.1, length(d))) * uGain * textClear(gl_FragCoord.xy, 240.0);
+  float light = exp(-dot(d, d)) * (1.0 - smoothstep(1.1, 2.1, length(d))) * uGain * textClear(gl_FragCoord.xy, 380.0);
   float n = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5;
   light += n * 0.004 * clamp(light * 40.0, 0.0, 1.0);
   gl_FragColor = vec4(uColor * light, 1.0);

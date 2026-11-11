@@ -33,7 +33,7 @@ export const hubLevel = (T) => (Number.isFinite(T) ? smoothstep((assembleAmount(
 // How visible the text of beat `stop` (1..6) is on the desktop, where its ink glass would cover a plate that is arriving: faded in
 // as the camera reaches the plate before it, held while the reader reads, faded out before the camera moves on.
 export const textFade = (T, stop) => (Number.isFinite(T)
-  ? smoothstep((T - (stop - 0.4)) / 0.25) * (1 - smoothstep((T - (stop + 0.55)) / 0.25)) : 1);
+  ? smoothstep((T - (stop - 0.4)) / 0.25) * (1 - smoothstep((T - (stop + 0.4)) / 0.25)) : 1);
 
 // The pulse the hub sends when it is played: out along the spokes first, then the ring wave takes over.
 export const PULSE = Object.freeze({ spokeSeconds: 0.85, ringAt: 0.75, seconds: 1.4 });
