@@ -16,13 +16,44 @@ const STOPS = 8;
 const T_MAX = 7.999;
 // Gaps between plates (8 and 5 units landscape, 3 and 4 portrait) are long enough for a link to read as a line.
 const LANDSCAPE_COLS = [-20, 0, 20];
-const LANDSCAPE_ROWS = [6.5, -6.5];
-const PORTRAIT_COLS = [-7.5, 7.5];
+const LANDSCAPE_ROWS = [8, -8]; // wide enough for the hub in the middle: 8 units between the rows
+const PORTRAIT_COLS = [-10.5, 10.5]; // 9 units between the columns, for the hub
 const PORTRAIT_ROWS = [12, 0, -12];
 const PANEL_W = 12;
 const PANEL_H = 8;
 const LANDSCAPE_ORDER = [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1]];
 const PORTRAIT_ORDER = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 2], [1, 2]]; // pos stock ordering staff cogs invoices
+
+// The hub: a small plate with the Recuro wordmark in the middle of the assembled map, joined to every panel by a spoke.
+export const HUB_CLEARANCE = 1.2; // free space between the hub and the nearest panel edge
+export const hubSizeFor = (aspect) => (aspect < 1 ? [6.6, 3] : [9, 4]);
+// 0 until the ring is nearly closed, 1 when assembly is done.
+export const hubLevel = (T) => (Number.isFinite(T) ? smoothstep((assembleAmount(T) - 0.78) / 0.22) : 0);
+
+// The pulse the hub sends when it is played: out along the spokes first, then the ring wave takes over.
+export const PULSE = Object.freeze({ spokeSeconds: 0.85, ringAt: 0.75, seconds: 1.4 });
+// Position of the pulse along a spoke (0 = hub end, 1 = plate end) `clock` seconds after it started; far outside 0..1 when idle.
+export const spokePulse = (clock) => (clock >= 0 && clock <= PULSE.seconds ? (clock / PULSE.spokeSeconds) * 1.35 - 0.2 : -9);
+export const pulseStartsRing = (clock) => clock >= PULSE.ringAt;
+
+// Which way a link between two plates bows, fixed in the map's own space: perpendicular to the link in the assembled layout,
+// pointing away from the middle of the map. It takes layout positions only (never live ones, never the camera), so a link
+// bends the same way at every scroll position and during every cross-fade. Pairs through the middle bow up.
+export function bowNormal(a, b, out) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const len = Math.hypot(dx, dy);
+  if (len < 1e-9) { out[0] = 0; out[1] = 1; return out; }
+  let nx = -dy / len;
+  let ny = dx / len;
+  const side = nx * (a[0] + b[0]) + ny * (a[1] + b[1]);
+  if (Math.abs(side) < 1e-6) { // the link passes through the middle: use a fixed direction, the same whichever way it is read
+    if (ny < 0 || (ny === 0 && nx < 0)) { nx = -nx; ny = -ny; }
+  } else if (side < 0) { nx = -nx; ny = -ny; }
+  out[0] = Math.abs(nx) < 1e-12 ? 0 : nx;
+  out[1] = Math.abs(ny) < 1e-12 ? 0 : ny;
+  return out;
+}
 
 export function layoutFor(aspect) {
   const portrait = aspect < 1;
@@ -90,14 +121,14 @@ export const assembleAmount = (T) => clamp((T - 6.6) / 0.73, 0, 1);
 
 // ---- threads and gold ----
 // Between two panel beats a thread leaves one plate and travels to the next, page order. It starts once most of the
-// beat is read (T = i + 1.4), is drawn when the camera arrives (T = i + 2.05) and stays lit.
+// beat is read (T = i + 1.3), is drawn just before the camera arrives (T = i + 1.9) and stays lit.
 export const THREADS = Object.freeze(PANEL_IDS.slice(0, -1).map((from, i) => Object.freeze({ from, to: PANEL_IDS[i + 1] })));
-const THREAD_START = 1.4;
-const THREAD_LEN = 0.65;
+const THREAD_START = 1.3;
+const THREAD_LEN = 0.6;
 export const threadAmount = (T, i) => smoothstep((T - (i + THREAD_START)) / THREAD_LEN);
 
 // 0..1: plate j has taken the light. The first plate when the camera reaches it, the others when their thread lands.
-export const plateLevel = (T, j) => smoothstep((T - (j + 1.05)) / 0.35);
+export const plateLevel = (T, j) => smoothstep((T - (j + 0.9)) / 0.25);
 
 // Cross-fade at assembly: threads (arcs through the scattered space) give way to the ring of LINKS.
 export const threadFade = (T) => 1 - smoothstep((assembleAmount(T) - 0.25) / 0.45);

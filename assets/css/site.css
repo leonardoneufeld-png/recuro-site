@@ -175,6 +175,12 @@ html.past-map body:not(.subpage) > .site-header {
 html.map-live .stage { display: block; opacity: 0; transition: opacity 0.6s var(--ease-out); }
 html.map-shown .stage { opacity: 1; }
 .map > :not(.stage) { position: relative; z-index: 1; }
+/* the hub's play control, laid over the hub by the map script; it takes taps but leaves vertical swipes to the page */
+.map > .hub-btn {
+  position: fixed; left: 0; top: 0; z-index: 3; background: transparent; border: 0; border-radius: 12px; cursor: pointer;
+  touch-action: pan-y; -webkit-tap-highlight-color: transparent;
+}
+.map > .hub-btn:focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; }
 /* the fixed canvas must not show through or over the bone page after the map */
 html.map-live .map { clip-path: inset(0); }
 /* the live hero: the canvas is the backdrop; the photo fades out over it, the bottom scrim stays for the headline */

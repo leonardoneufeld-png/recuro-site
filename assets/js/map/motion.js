@@ -68,3 +68,13 @@ export function edgePoint(c, other, hx, hy, gap, out = [0, 0, 0]) {
   out[2] = c[2] + dz * t + (dz / len) * gap;
   return out;
 }
+
+// Writes (a, b) with d = a * ex + b * ey into `out` and returns it: a direction seen on screen, expressed on the plate's own
+// axes as they appear on screen. Returns null when it has no answer (plate edge on, or no direction).
+export function solveAxes(ex, ey, d, out) {
+  const det = ex[0] * ey[1] - ex[1] * ey[0];
+  if (Math.abs(det) < 1e-9 || Math.hypot(d[0], d[1]) < 1e-9) return null;
+  out[0] = (d[0] * ey[1] - d[1] * ey[0]) / det;
+  out[1] = (ex[0] * d[1] - ex[1] * d[0]) / det;
+  return out;
+}

@@ -80,7 +80,43 @@ function holeTexture(T3, outlines, scale) {
   g.strokeStyle = 'rgba(0,0,0,0.035)';
   for (let w = 56; w >= 2; w -= 2) { g.lineWidth = w; g.stroke(path); } // only the inside half shows: a smooth fall-off toward the walls
   g.restore();
+  evenOut(g);
   return new T3.CanvasTexture(c);
+}
+
+// The fall-off toward the walls is painted at one fixed width, so a thin outline (the tag, the document) never gets bright
+// in its middle while a big block (the truck) does, and the thin icons read dim. Dividing by the brightest value nearby
+// puts the middle of every cut-out, thin or thick, at the same brightness and keeps the fall-off toward the walls.
+const EVEN_RADIUS = 26; // pixels in the HOLE_PX map
+const EVEN_FLOOR = 0.12; // empty space stays empty
+function evenOut(g) {
+  const img = g.getImageData(0, 0, HOLE_PX, HOLE_PX);
+  const px = img.data;
+  const v = new Float32Array(HOLE_PX * HOLE_PX);
+  for (let i = 0; i < v.length; i++) v[i] = px[i * 4] / 255;
+  const pass = (src, vertical) => {
+    const out = new Float32Array(src.length);
+    for (let y = 0; y < HOLE_PX; y++) {
+      for (let x = 0; x < HOLE_PX; x++) {
+        let m = 0;
+        for (let d = -EVEN_RADIUS; d <= EVEN_RADIUS; d++) {
+          const xx = vertical ? x : x + d;
+          const yy = vertical ? y + d : y;
+          if (xx < 0 || yy < 0 || xx >= HOLE_PX || yy >= HOLE_PX) continue;
+          const t = src[yy * HOLE_PX + xx];
+          if (t > m) m = t;
+        }
+        out[y * HOLE_PX + x] = m;
+      }
+    }
+    return out;
+  };
+  const near = pass(pass(v, false), true);
+  for (let i = 0; i < v.length; i++) {
+    const out = Math.round(255 * Math.min(1, v[i] / Math.max(near[i], EVEN_FLOOR)));
+    px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = out;
+  }
+  g.putImageData(img, 0, 0);
 }
 
 // The icon shapes as sheets of light just behind a plate. Returns { mesh, texture }; mesh.material.uniforms drive it.
@@ -112,8 +148,8 @@ export function buildGlow(T3, signal, halos = 0) {
     owned.push(geometry, material);
     return mesh;
   };
-  // amber, with less green than the signal gold, so the room reads as warm light and not olive
-  const amber = new T3.Color().setRGB(1.0, 0.46, 0.14);
+  // warm gold, with less green than the signal gold (olive) and more than amber (brown)
+  const amber = new T3.Color().setRGB(1.0, 0.66, 0.26);
   const haze = mk(new T3.PlaneGeometry(2, 2), HAZE_VERT, HAZE_FRAG, {
     uColor: { value: amber },
     uAspect: { value: 1.6 }, uCentre: { value: new T3.Vector2(0.5, 0.5) }, uRadius: { value: 0.5 },

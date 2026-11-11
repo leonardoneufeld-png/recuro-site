@@ -40,7 +40,7 @@ const plateGeometry = (T3, outlines) => {
 // No pixel of a plate may reach the bloom threshold on its own: a polished bevel or hole wall that mirrors the key light
 // would otherwise bloom into a white star. The cap sits under the threshold in engine.js; only light sources go above it.
 const PLATE_CAP = 1.0;
-function capRadiance(material) {
+export function capRadiance(material) {
   material.onBeforeCompile = (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>',
       `#include <opaque_fragment>\n  gl_FragColor.rgb = min(gl_FragColor.rgb, vec3(${PLATE_CAP.toFixed(2)}));`);
