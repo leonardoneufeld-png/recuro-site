@@ -198,10 +198,10 @@ html.map-live .hero-img { visibility: hidden; opacity: 0; transition: opacity 0.
     mask-composite: intersect;
   }
 }
-/* the flow text sits on ink glass as wide as the screen; its lower edge fades into the scene over 3rem, so no box edge shows */
+/* the flow text sits on ink glass as wide as the screen; its top edge fades in over 2rem and its lower edge fades out over 3rem, so no box edge shows */
 html.map-live .flow-head::before {
-  content: ''; position: absolute; z-index: -1; top: -1rem; bottom: -3rem; left: calc(50% - 50vw); right: calc(50% - 50vw); pointer-events: none;
-  background: linear-gradient(to bottom, rgb(20 17 14 / var(--glass-opacity)) calc(100% - 3rem), rgb(20 17 14 / 0) 100%);
+  content: ''; position: absolute; z-index: -1; top: -3rem; bottom: -3rem; left: calc(50% - 50vw); right: calc(50% - 50vw); pointer-events: none;
+  background: linear-gradient(to bottom, rgb(20 17 14 / 0) 0, rgb(20 17 14 / var(--glass-opacity)) 2rem, rgb(20 17 14 / var(--glass-opacity)) calc(100% - 3rem), rgb(20 17 14 / 0) 100%);
 }
 html.map-live:not(.map-shown) .hero-img { visibility: visible; opacity: 1; }
 
