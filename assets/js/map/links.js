@@ -1,5 +1,6 @@
 import { solveAxes } from './motion.js';
-import { bowNormal } from './cues.js';
+import { bowNormal, smoothstep } from './cues.js';
+import { MASK_GLSL } from './textmask.js';
 
 // Light that flows between plates: curved ribbons drawn by a shader. Each ribbon is a gentle arc between two plate edges
 // with a bright thin core and a feathered edge, a soft head while it draws in, and a few soft highlights that travel
@@ -9,6 +10,7 @@ const TUCK = 0.3; // the ribbon ends this far under the plate, so the join is hi
 const RIM_LEN = 5;
 const RIM_WIDTH = 0.9;
 const RIM_GAIN = 1.5;
+const CORNER_BAND = 0.18; // share of the plate's half size around a corner diagonal where the rim pick-up fades
 const RIM_Z = 0.31; // just in front of the plate's face
 const SEG = 44;
 const HALF_WIDTH = 0.34; // world units, across the ribbon, before the shader feathers it
@@ -33,6 +35,9 @@ void main() {
 }`;
 
 const FRAG = /* glsl */ `
+${MASK_GLSL}
+uniform float uStretch;
+uniform float uMaskOn;
 uniform vec3 uColor;
 uniform float uFeather;
 uniform float uHead;
@@ -52,7 +57,7 @@ void main() {
   float profile = (exp(-a * a * 15.0) + 0.3 * uFeather * exp(-a * a * 3.4)) * (1.0 - smoothstep(0.72, 1.0, a));
   float reach = uHead * 1.16;
   float drawn = 1.0 - smoothstep(reach - 0.16, reach, u); // soft head that fades back into the line
-  float tz = (u - uHead) / 0.035;
+  float tz = (u - uHead) / (0.035 * (1.0 + uStretch)); // the head stretches a little with scroll speed
   float tip = exp(-tz * tz) * (1.0 - smoothstep(0.86, 1.0, uHead));
   float flow = bump(u, uPhase.x, ${SPREAD[0]}) + 0.8 * bump(u, uPhase.y, ${SPREAD[1]}) + 0.6 * bump(u, uPhase.z, ${SPREAD[2]});
   float line = (0.5 + 0.8 * flow) * drawn;
@@ -61,7 +66,8 @@ void main() {
   // an end that meets a plate which has faded out fades with it, instead of stopping with a hard edge at an invisible plate
   float ends = mix(uEnds.x, 1.0, smoothstep(0.0, 0.5, u)) * mix(1.0, uEnds.y, smoothstep(0.5, 1.0, u)) * max(uEnds.x, uEnds.y);
   // (a link between two faded plates has nothing to join, so it fades out whole)
-  float light = profile * (uGain * (line + 1.6 * tip) + wave * 2.2) * ends;
+  float clear = mix(1.0, textClear(gl_FragCoord.xy, 90.0), uMaskOn); // fades out before the text instead of passing behind it
+  float light = profile * (uGain * (line + 1.6 * tip) + wave * 2.2) * ends * clear;
   gl_FragColor = vec4(uColor * light, 1.0);
 }`;
 
@@ -110,10 +116,10 @@ void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(
 // how visible a plate is (1 when it does not say): set every frame by look.js
 const shown = (plate) => plate.userData.shown ?? 1;
 
-export function buildLinks(T3, ring, threads, signal = '#f0c987', plates = {}, spokes = []) {
+export function buildLinks(T3, ring, threads, signal = '#f0c987', plates = {}, spokes = [], maskUniforms = {}) {
   const group = new T3.Group();
   const base = new T3.Color(signal);
-  const shared = { uColor: { value: base }, uFeather: { value: 1 }, uWidth: { value: HALF_WIDTH } };
+  const shared = { ...maskUniforms, uColor: { value: base }, uFeather: { value: 1 }, uWidth: { value: HALF_WIDTH }, uStretch: { value: 0 }, uMaskOn: { value: 1 } };
   const aU = new Float32Array((SEG + 1) * 2);
   const aSide = new Float32Array((SEG + 1) * 2);
   const index = [];
@@ -213,12 +219,15 @@ export function buildLinks(T3, ring, threads, signal = '#f0c987', plates = {}, s
   }
   // Lay a rim pick-up along the edge the join sits on, centred on the join.
   function setRim(mesh, slot, gain, plate) {
-    mesh.visible = gain > 0.003;
-    if (!mesh.visible) return;
     const [hw, hh] = plate.userData.half || DEFAULT_HALF;
     const z = plate.userData.faceZ ?? RIM_Z;
     const [jx, jy] = join[slot];
-    const sideways = Math.abs(jx) / hw > Math.abs(jy) / hh;
+    const lean = Math.abs(jx) / hw - Math.abs(jy) / hh; // > 0: the join is on a side edge, < 0: on the top or bottom edge
+    // near a corner the strip would jump from one edge to the other; it fades out there and changes edge while it is invisible
+    gain *= smoothstep(Math.abs(lean) / CORNER_BAND);
+    mesh.visible = gain > 0.003;
+    if (!mesh.visible) return;
+    const sideways = lean > 0;
     const inset = RIM_WIDTH / 2 - 0.05;
     if (sideways) {
       const sx = Math.sign(jx) || 1;
@@ -255,6 +264,8 @@ export function buildLinks(T3, ring, threads, signal = '#f0c987', plates = {}, s
 
   // s: { time, ring[], threads[] (draw amounts), ringGain, threadGain, wave, waveGain, cycle[] ({order, reversed}) }
   function update(positions, s) {
+    shared.uStretch.value = s.stretch || 0;
+    shared.uMaskOn.value = s.maskOn ?? 1;
     camera = s.camera || null;
     aspect = s.aspect || 1;
     ringItems.forEach((item, i) => {

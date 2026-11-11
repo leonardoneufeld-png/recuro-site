@@ -18,7 +18,7 @@ const T_MAX = 7.999;
 const LANDSCAPE_COLS = [-20, 0, 20];
 const LANDSCAPE_ROWS = [8, -8]; // wide enough for the hub in the middle: 8 units between the rows
 const PORTRAIT_COLS = [-10.5, 10.5]; // 9 units between the columns, for the hub
-const PORTRAIT_ROWS = [12, 0, -12];
+const PORTRAIT_ROWS = [17, 0, -17]; // 17 apart: the phone's flow hold uses the height of the screen, not only the width
 const PANEL_W = 12;
 const PANEL_H = 8;
 const LANDSCAPE_ORDER = [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1]];
@@ -29,6 +29,11 @@ export const HUB_CLEARANCE = 1.2; // free space between the hub and the nearest 
 export const hubSizeFor = (aspect) => (aspect < 1 ? [6.6, 3] : [9, 4]);
 // 0 until the ring is nearly closed, 1 when assembly is done.
 export const hubLevel = (T) => (Number.isFinite(T) ? smoothstep((assembleAmount(T) - 0.78) / 0.22) : 0);
+
+// How visible the text of beat `stop` (1..6) is on the desktop, where its ink glass would cover a plate that is arriving: faded in
+// as the camera reaches the plate before it, held while the reader reads, faded out before the camera moves on.
+export const textFade = (T, stop) => (Number.isFinite(T)
+  ? smoothstep((T - (stop - 0.4)) / 0.25) * (1 - smoothstep((T - (stop + 0.55)) / 0.25)) : 1);
 
 // The pulse the hub sends when it is played: out along the spokes first, then the ring wave takes over.
 export const PULSE = Object.freeze({ spokeSeconds: 0.85, ringAt: 0.75, seconds: 1.4 });

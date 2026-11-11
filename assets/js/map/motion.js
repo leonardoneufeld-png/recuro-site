@@ -5,6 +5,30 @@ const lerp = (a, b, t) => a + (b - a) * t;
 
 export const damp = (dt, rate) => 1 - Math.exp(-dt * rate);
 
+// Scroll speed in screens per second, eased: `v` is the last value, `dy` the scroll distance since the last frame in px, `dt` the
+// frame time in s, `vh` the viewport height in px. Clamped, and it decays smoothly to exactly 0 when the scrolling stops.
+export const SCROLL_MAX = 2.5;
+const SCROLL_RATE = 6;
+export function nextScrollSpeed(v, dy, dt, vh) {
+  if (!(dt > 0) || !(vh > 0) || !Number.isFinite(v) || !Number.isFinite(dy)) return 0;
+  const raw = Math.max(-SCROLL_MAX, Math.min(SCROLL_MAX, dy / dt / vh));
+  const next = v + (raw - v) * damp(dt, SCROLL_RATE);
+  return Math.abs(next) < 1e-3 && raw === 0 ? 0 : next;
+}
+
+// A damped spring on state { x, v }: moves x toward `target` with a soft overshoot when zeta < 1. Substeps keep it stable.
+export function springStep(state, target, dt, omega = 9, zeta = 0.5) {
+  const h = Math.min(Math.max(dt, 0), 0.05);
+  const n = Math.max(1, Math.ceil(h / 0.004));
+  const d = h / n;
+  for (let i = 0; i < n; i++) {
+    state.v += (omega * omega * (target - state.x) - 2 * zeta * omega * state.v) * d;
+    state.x += state.v * d;
+  }
+  if (Math.abs(state.x - target) < 1e-5 && Math.abs(state.v) < 1e-4) { state.x = target; state.v = 0; }
+  return state;
+}
+
 // Overshoots past 1 and settles back; 0 -> 0 and 1 -> 1.
 export function easeOutBack(t, c = 1.1) {
   const u = t - 1;

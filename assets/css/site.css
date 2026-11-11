@@ -16,7 +16,7 @@
   --signal: #f0c987; /* the map's light, and the three stat values on the dark case band; nowhere else */
   --brass: #7a5a1c; /* the one accent on bone: calculator result, text-link underlines and hover, the focused field's hairline */
   --header-h: 5.2rem; /* main.js replaces this with the measured header height */
-  --glass-opacity: 0.88; /* ink glass behind text over the live canvas; contrast over the brightest plate is tested */
+  --glass-opacity: 1; /* ink glass behind text over the live canvas: fully opaque under the text, so no thread, plate or glow shows through */
 
   /* semantic: light (bone) by default */
   --bg: var(--paper);
@@ -195,6 +195,8 @@ html.map-live .hero-img { visibility: hidden; opacity: 0; transition: opacity 0.
 /* Text over the live canvas sits on ink glass. A shadow spreads it past the box, so no layout box differs from the static page. */
 /* desktop panel text: ink glass that feathers into the scene over 2.5rem on every side. The solid part reaches 1.5rem past the text box. */
 @media (min-width: 760px) {
+  /* the map script fades a beat's text (and its glass) out before the camera moves on, so the glass never covers the plate arriving next */
+  html.map-live .beat-grid { opacity: var(--fade, 1); }
   html.map-live .beat-text { position: relative; isolation: isolate; }
   html.map-live .beat-text::before {
     content: ''; position: absolute; z-index: -1; inset: -4rem; pointer-events: none;

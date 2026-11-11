@@ -13,7 +13,10 @@ void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(
 const HAZE_VERT = /* glsl */ `
 varying vec2 vUv;
 void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
+import { MASK_GLSL } from './textmask.js';
+
 const HAZE_FRAG = /* glsl */ `
+${MASK_GLSL}
 uniform vec3 uColor;
 uniform float uGain;
 uniform float uAspect;
@@ -22,7 +25,8 @@ uniform float uRadius;
 varying vec2 vUv;
 void main() {
   vec2 d = (vUv - uCentre) * vec2(uAspect, 1.0) / uRadius;
-  float light = exp(-dot(d, d)) * uGain;
+  // the Gaussian is cut to exactly 0 before the screen edge, and fades out before the text boxes: no edge anywhere
+  float light = exp(-dot(d, d)) * (1.0 - smoothstep(1.1, 2.1, length(d))) * uGain * textClear(gl_FragCoord.xy, 240.0);
   float n = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5;
   light += n * 0.004 * clamp(light * 40.0, 0.0, 1.0);
   gl_FragColor = vec4(uColor * light, 1.0);
@@ -34,7 +38,9 @@ uniform float uGain;
 varying vec2 vUv;
 void main() {
   vec2 d = (vUv - 0.5) / 0.34;
-  gl_FragColor = vec4(uColor * exp(-dot(d, d)) * uGain, 1.0);
+  // cut to 0 before the quad's edge, or the quad shows as a rectangle
+  float edge = 1.0 - smoothstep(0.9, 1.4, length(d));
+  gl_FragColor = vec4(uColor * exp(-dot(d, d)) * edge * uGain, 1.0);
 }`;
 
 // Light through a stencil: brighter and warmer toward the middle of each cut-out, darker at the walls, with a slow
@@ -134,7 +140,8 @@ export function buildHole(T3, outlines, scale, z, signal) {
   return { mesh, texture, material, geometry };
 }
 
-export function buildGlow(T3, signal, halos = 0) {
+// maskUniforms: the text boxes (textmask.js); the room glow fades out before them
+export function buildGlow(T3, signal, halos = 0, maskUniforms = {}) {
   const base = new T3.Color(signal);
   const owned = [];
   const mk = (geometry, vertexShader, fragmentShader, extra, mat = {}) => {
@@ -151,7 +158,7 @@ export function buildGlow(T3, signal, halos = 0) {
   // warm gold, with less green than the signal gold (olive) and more than amber (brown)
   const amber = new T3.Color().setRGB(1.0, 0.66, 0.26);
   const haze = mk(new T3.PlaneGeometry(2, 2), HAZE_VERT, HAZE_FRAG, {
-    uColor: { value: amber },
+    ...maskUniforms, uColor: { value: amber },
     uAspect: { value: 1.6 }, uCentre: { value: new T3.Vector2(0.5, 0.5) }, uRadius: { value: 0.5 },
   });
   haze.renderOrder = -10;

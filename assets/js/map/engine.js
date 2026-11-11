@@ -7,11 +7,11 @@ import {
 import { ICONS } from './icons.js';
 import { damp, panelPose, presenceAmount } from './motion.js';
 import { createLook } from './look.js';
+import { createDynamics } from './dynamics.js';
 
 const INK = '#14110e';
 // ACES darkens the background a little; this gain makes the canvas match --ink on the page around it
 const BG_GAIN = 1.67;
-const ROOM_COOL = [0, 0.002, 0.007];
 const EXPOSURE = 1.8;
 const PHONE_DPR = 1.75;
 const DESKTOP_DPR = 2;
@@ -31,6 +31,7 @@ const mq = (q) => window.matchMedia(q);
 export async function startMap({ root, canvas }) {
   const force = new URLSearchParams(location.search).get('map') === 'force';
   const local = isLocalHost(location.hostname);
+  const noGrain = local && new URLSearchParams(location.search).get('grain') === '0'; // for flicker measurements: the grain is noise by design
   const ladderOn = ladderActive(force, location.hostname);
   const reduced = mq('(prefers-reduced-motion: reduce)');
   const gate = () => mayRun({
@@ -41,8 +42,9 @@ export async function startMap({ root, canvas }) {
   const sections = [root.querySelector('#hero'), ...PANEL_IDS.map((id) => root.querySelector(`.beat[data-panel="${id}"]`)), root.querySelector('.flow')];
   if (sections.some((s) => !s)) return null;
 
-  const [T3, panelsMod, studioMod, linksMod, glowMod, rigMod] = await Promise.all([
-    import('../vendor/three/three.bundle.min.js'), import('./panels.js'), import('./studio.js'), import('./links.js'), import('./glow.js'), import('./hubrig.js'),
+  const [T3, panelsMod, studioMod, linksMod, glowMod, rigMod, maskMod, grainMod] = await Promise.all([
+    // (the last two are the text mask and the film grain)
+    import('../vendor/three/three.bundle.min.js'), import('./panels.js'), import('./studio.js'), import('./links.js'), import('./glow.js'), import('./hubrig.js'), import('./textmask.js'), import('./grain.js'),
   ]);
   if (!gate()) return null; // reduced motion may have flipped while loading
 
@@ -52,7 +54,7 @@ export async function startMap({ root, canvas }) {
   const on = (target, type, fn, opts) => { target.addEventListener(type, fn, opts); cleanups.push(() => target.removeEventListener(type, fn, opts)); };
 
   // everything below may be half built when stop() runs, so stop() checks each piece
-  let renderer = null, composer = null, bloom = null, panels = null, links = null, glow = null, rig = null, scene = null, writeTarget = null;
+  let grain = null, mask = null, renderer = null, composer = null, bloom = null, panels = null, links = null, glow = null, rig = null, scene = null, writeTarget = null;
   let stopped = false, raf = 0;
 
   function stop() {
@@ -84,8 +86,7 @@ export async function startMap({ root, canvas }) {
     renderer.toneMapping = T3.ACESFilmicToneMapping;
     renderer.toneMappingExposure = EXPOSURE;
     scene = new T3.Scene();
-    // the room is ink with a hint of blue-black, so the gold light has a cool shadow to sit against
-    scene.background = new T3.Color(INK).multiplyScalar(BG_GAIN).add(new T3.Color(...ROOM_COOL));
+    scene.background = new T3.Color(INK).multiplyScalar(BG_GAIN);
     const camera = new T3.PerspectiveCamera(30, 1, 1, 600);
     // the composer renders the scene into its read buffer; only that one is multisampled
     writeTarget = new T3.WebGLRenderTarget(4, 4, hdr ? { type: T3.HalfFloatType, samples: 0 } : { samples: 0 });
@@ -102,19 +103,21 @@ export async function startMap({ root, canvas }) {
     const output = new T3.OutputPass();
     output.needsSwap = false;
     composer.addPass(output);
+    grain = grainMod.addGrain(output, 1);
+    mask = maskMod.createTextMask(T3, root, html);
 
     const signal = getComputedStyle(html).getPropertyValue('--signal').trim() || '#f0c987';
     scene.environment = studioMod.buildEnvironment(T3, renderer);
     scene.environmentIntensity = 1;
     panels = panelsMod.buildPanels(T3, PANEL_IDS, ICONS, signal);
-    glow = glowMod.buildGlow(T3, signal, N);
+    glow = glowMod.buildGlow(T3, signal, N, mask.uniforms);
     PANEL_IDS.forEach((id, i) => {
       const { face: f, bevel: b } = panels.byId[id].userData;
       for (const m of [f, b]) { m.emissive.set(signal); m.emissiveIntensity = 0; }
       panels.byId[id].add(glow.halos[i]);
     });
     rig = rigMod.buildHubRig(T3, { root, html, signal });
-    links = linksMod.buildLinks(T3, LINKS, THREADS, signal, { ...panels.byId, hub: rig.group }, PANEL_IDS.map((id) => ({ from: 'hub', to: id })));
+    links = linksMod.buildLinks(T3, LINKS, THREADS, signal, { ...panels.byId, hub: rig.group }, PANEL_IDS.map((id) => ({ from: 'hub', to: id })), mask.uniforms);
     const warmLight = new T3.DirectionalLight(signal, 0);
     warmLight.position.set(-30, 20, 60);
     scene.add(panels.group, rig.group, links.group, glow.haze, warmLight);
@@ -128,6 +131,8 @@ export async function startMap({ root, canvas }) {
     const walkAt = {}; // where each plate sits on the finale wave's walk round the ring
     LINKS.forEach((l, i) => { walkAt[cycle[i].reversed ? l.to : l.from] = cycle[i].order; });
     const look = createLook(T3);
+    const dynamics = createDynamics();
+    let envClock = 0;
     const intervals = [];
     const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
     let mouse = false;
@@ -189,6 +194,8 @@ export async function startMap({ root, canvas }) {
     function frame(raw) {
       const dt = Math.min(raw, 0.05);
       time += dt;
+      const dyn = dynamics({ dt, scrollY: window.scrollY, vh: innerHeight });
+      envClock += dt * dyn.sweep;
       const measured = timelineAt(tops, heights, window.scrollY, innerHeight);
       T += (measured - T) * damp(raw, 7); // ease toward the scroll position so jittery scrolling stays smooth
       if (!Number.isFinite(T)) T = Number.isFinite(measured) ? measured : 0;
@@ -208,7 +215,7 @@ export async function startMap({ root, canvas }) {
         panelPose({ index: i, T, time, scatter: scatter[id], layout: layout[id], face }, pose);
         const obj = panels.byId[id];
         obj.position.set(pose.pos[0], pose.pos[1], pose.pos[2]);
-        obj.rotation.set(pose.rot[0], pose.rot[1], pose.rot[2]);
+        obj.rotation.set(pose.rot[0] - dyn.lean, pose.rot[1], pose.rot[2]); // plates lean against the direction of travel
       }
       for (let i = 0; i < THREADS.length; i++) amounts[i] = threadAmount(T, i);
       const assembled = assembleAmount(T) >= 1;
@@ -260,8 +267,12 @@ export async function startMap({ root, canvas }) {
       const asm = assembleNow;
       ndc.set(0, 0, 0).project(camera);
       glow.setHaze(HAZE_GAIN * gold, (ndc.x * 0.5 + 0.5) * asm + (0.5 + shot.shiftX) * (1 - asm), (ndc.y * 0.5 + 0.5) * asm + 0.5 * (1 - asm), aspect);
-      scene.environmentRotation.set(pointer.y * 0.05, pointer.x * POINTER_TILT + Math.sin(time * 0.12) * 0.12 + time * 0.01, 0);
+      scene.environmentRotation.set(pointer.y * 0.05, pointer.x * POINTER_TILT + Math.sin(envClock * 0.12) * 0.12 + envClock * 0.01, 0);
       linkState.aspect = aspect;
+      linkState.stretch = dyn.stretch;
+      linkState.maskOn = phoneQuery.matches ? 0 : 1;
+      mask.update({ T, width: size.width, height: size.height, ratio: pixelRatio, phone: phoneQuery.matches });
+      grain.update(dt, level < 3 && !noGrain, pixelRatio);
       const pulse = rig.update({
         T, raw, dt, time, aspect, size, camera, ndc, pointer, mouse, visible, waveBusy: waveClock >= 0, gold, linkState,
       });
