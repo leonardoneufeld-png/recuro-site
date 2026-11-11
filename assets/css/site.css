@@ -187,7 +187,11 @@ html.map-live .hero::after {
 html.map-live .hero-img { visibility: hidden; opacity: 0; transition: opacity 0.6s var(--ease-out), visibility 0s linear 0.6s; }
 /* Text over the live canvas sits on ink glass. A shadow spreads it past the box, so no layout box differs from the static page. */
 html.map-live .beat-text { background: rgb(20 17 14 / var(--glass-opacity)); box-shadow: 0 0 0 1.5rem rgb(20 17 14 / var(--glass-opacity)); }
-html.map-live .flow-head { background: rgb(20 17 14 / var(--glass-opacity)); box-shadow: 0 0 0 1rem rgb(20 17 14 / var(--glass-opacity)); }
+/* the flow text sits on ink glass as wide as the screen; its lower edge fades into the scene over 3rem, so no box edge shows */
+html.map-live .flow-head::before {
+  content: ''; position: absolute; z-index: -1; top: -1rem; bottom: -3rem; left: calc(50% - 50vw); right: calc(50% - 50vw); pointer-events: none;
+  background: linear-gradient(to bottom, rgb(20 17 14 / var(--glass-opacity)) calc(100% - 3rem), rgb(20 17 14 / 0) 100%);
+}
 html.map-live:not(.map-shown) .hero-img { visibility: visible; opacity: 1; }
 
 .beat { display: flex; align-items: center; min-height: 100svh; padding-block: calc(var(--section) * 0.5); }
@@ -236,8 +240,8 @@ html.map-live:not(.map-shown) :is(.beat-still, .flow-still) { visibility: visibl
   .beat[data-panel='stock'] .beat-text, .beat[data-panel='staff'] .beat-text, .beat[data-panel='invoices'] .beat-text,
   .beat[data-panel='stock'] .beat-still, .beat[data-panel='staff'] .beat-still, .beat[data-panel='invoices'] .beat-still { grid-column: 1; grid-row: auto; }
   .beat-still { order: -1; }
-  /* over the live canvas the text gets a flat ink scrim to stay readable */
-  html.map-live .beat-text { background: rgb(20 17 14 / var(--scrim-opacity)); box-shadow: 0 0 0 1.25rem rgb(20 17 14 / var(--scrim-opacity)); }
+  /* over the live canvas the text sits on the same ink glass as on desktop, so no plate reads through it */
+  html.map-live .beat-text { background: rgb(20 17 14 / var(--glass-opacity)); box-shadow: 0 0 0 1.25rem rgb(20 17 14 / var(--glass-opacity)); }
   .flow-body { grid-column: 1 / -1; }
   .flow-still { aspect-ratio: 16 / 10; top: 52svh; }
 }
