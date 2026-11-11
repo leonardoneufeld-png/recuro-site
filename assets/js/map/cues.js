@@ -68,6 +68,53 @@ export const linkAmount = (T, at) => clamp((T - (at + 0.55)) / 0.35, 0, 1);
 // done a third of the way into the flow section; the rest of that section is the hold
 export const assembleAmount = (T) => clamp((T - 6.6) / 0.73, 0, 1);
 
+// ---- threads and gold ----
+// Between two panel beats a thread leaves one plate and travels to the next, page order. It starts once most of the
+// beat is read (T = i + 1.4), is drawn when the camera arrives (T = i + 2.05) and stays lit.
+export const THREADS = Object.freeze(PANEL_IDS.slice(0, -1).map((from, i) => Object.freeze({ from, to: PANEL_IDS[i + 1] })));
+const THREAD_START = 1.4;
+const THREAD_LEN = 0.65;
+export const threadAmount = (T, i) => smoothstep((T - (i + THREAD_START)) / THREAD_LEN);
+
+// 0..1: plate j has taken the light. The first plate when the camera reaches it, the others when their thread lands.
+export const plateLevel = (T, j) => smoothstep((T - (j + 1.05)) / 0.35);
+
+// Cross-fade at assembly: threads (arcs through the scattered space) give way to the ring of LINKS.
+export const threadFade = (T) => 1 - smoothstep((assembleAmount(T) - 0.25) / 0.45);
+export const ringShow = (T) => smoothstep((assembleAmount(T) - 0.1) / 0.5);
+
+// Gold in the scene: 0 at the hero, one step per plate that takes the light, the last step when the ring closes.
+export function integrationAt(T) {
+  if (!Number.isFinite(T)) return 0;
+  let sum = ringShow(T);
+  for (let j = 0; j < PANEL_IDS.length; j++) sum += plateLevel(T, j);
+  return clamp(sum / (PANEL_IDS.length + 1), 0, 1);
+}
+
+// One walk round the ring: for each link its place in the walk and whether the walk runs against from -> to.
+export function ringCycle(links) {
+  const out = links.map(() => null);
+  let at = links[0].from;
+  for (let k = 0; k < links.length; k++) {
+    const i = links.findIndex((l, n) => !out[n] && (l.from === at || l.to === at));
+    if (i < 0) break;
+    const reversed = links[i].to === at;
+    out[i] = { order: k, reversed };
+    at = reversed ? links[i].from : links[i].to;
+  }
+  return out;
+}
+
+// The finale wave: position s along the walk (plate j sits at s = j, link k spans s = k..k+1), run once.
+export const WAVE_SECONDS = 3.2;
+const WAVE_FROM = -0.8;
+const WAVE_TO = 6.8;
+export function waveAt(elapsed) {
+  const t = clamp(Number.isFinite(elapsed) ? elapsed / WAVE_SECONDS : 0, 0, 1);
+  return WAVE_FROM + (WAVE_TO - WAVE_FROM) * (0.5 * t + 0.5 * smoothstep(t));
+}
+export const waveGlow = (s, at, width) => Math.exp(-(((s - at) / width) ** 2));
+
 // order = panel index / 5. The last panel starts first.
 export function panelAssemble(e, order) {
   const delay = (1 - order) * 0.42;
