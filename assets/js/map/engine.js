@@ -1,6 +1,9 @@
 // Scroll-driven steel panels on a fixed canvas behind the page. startMap() returns { stop() } or null when the map may not run.
 import { mayRun, nextLevel, ladderActive, isLocalHost, estimateRefreshHz, resizeMatters, LAST_LEVEL, LOW_PIXEL_RATIO } from './gate.js';
-import { PANEL_IDS, LINKS, SCATTER, layoutFor, timelineAt, shotAt, linkAmount, assembleAmount } from './cues.js';
+import {
+  PANEL_IDS, LINKS, THREADS, SCATTER, layoutFor, timelineAt, shotAt, assembleAmount, threadAmount, plateLevel,
+  threadFade, ringShow, integrationAt, ringCycle, waveAt, waveGlow, WAVE_SECONDS,
+} from './cues.js';
 import { ICONS } from './icons.js';
 import { damp, panelPose, focusAmount } from './motion.js';
 
@@ -15,6 +18,14 @@ const FPS_GRACE_MS = 2000;
 const POINTER_TILT = 0.12;
 const RECEDE = 1; // out-of-focus panels fade and shrink a little during a beat: only the plate in focus is lit
 const N = PANEL_IDS.length;
+// gold: everything below scales with `gold` (0 at the hero, 1 on the flow map)
+const BLOOM_BASE = 0.4;
+const BLOOM_GOLD = 0.3;
+const ENV_GOLD = 0.3;
+const HAZE_GAIN = 0.085;
+const HOLE_HDR = 2.1;
+const COOL_STEEL = [0.84, 0.85, 0.87];
+const WARM_STEEL = [0.96, 0.86, 0.7];
 
 const mq = (q) => window.matchMedia(q);
 
@@ -31,8 +42,8 @@ export async function startMap({ root, canvas }) {
   const sections = [root.querySelector('#hero'), ...PANEL_IDS.map((id) => root.querySelector(`.beat[data-panel="${id}"]`)), root.querySelector('.flow')];
   if (sections.some((s) => !s)) return null;
 
-  const [T3, panelsMod, studioMod, linksMod] = await Promise.all([
-    import('../vendor/three/three.bundle.min.js'), import('./panels.js'), import('./studio.js'), import('./links.js'),
+  const [T3, panelsMod, studioMod, linksMod, glowMod] = await Promise.all([
+    import('../vendor/three/three.bundle.min.js'), import('./panels.js'), import('./studio.js'), import('./links.js'), import('./glow.js'),
   ]);
   if (!gate()) return null; // reduced motion may have flipped while loading
 
@@ -42,7 +53,7 @@ export async function startMap({ root, canvas }) {
   const on = (target, type, fn, opts) => { target.addEventListener(type, fn, opts); cleanups.push(() => target.removeEventListener(type, fn, opts)); };
 
   // everything below may be half built when stop() runs, so stop() checks each piece
-  let renderer = null, composer = null, bloom = null, panels = null, links = null, scene = null, writeTarget = null;
+  let renderer = null, composer = null, bloom = null, panels = null, links = null, glow = null, scene = null, writeTarget = null;
   let stopped = false, raf = 0;
 
   function stop() {
@@ -56,6 +67,7 @@ export async function startMap({ root, canvas }) {
     canvas.style.width = canvas.style.height = '';
     if (panels) panelsMod.disposePanels(panels);
     links?.dispose();
+    glow?.dispose();
     scene?.environment?.dispose();
     composer?.dispose();
     writeTarget?.dispose();
@@ -80,7 +92,7 @@ export async function startMap({ root, canvas }) {
     const sceneTarget = composer.readBuffer;
     const samples = coarse ? 2 : 4;
     sceneTarget.samples = samples;
-    bloom = new T3.UnrealBloomPass(new T3.Vector2(4, 4), 0.45, 0.5, 1.15);
+    bloom = new T3.UnrealBloomPass(new T3.Vector2(4, 4), BLOOM_BASE, 0.5, 1.15);
     bloom.enabled = hdr;
     composer.addPass(new T3.RenderPass(scene, camera));
     composer.addPass(bloom);
@@ -89,24 +101,37 @@ export async function startMap({ root, canvas }) {
     const signal = getComputedStyle(html).getPropertyValue('--signal').trim() || '#f0c987';
     scene.environment = studioMod.buildEnvironment(T3, renderer);
     scene.environmentIntensity = 1;
-    panels = panelsMod.buildPanels(T3, PANEL_IDS, ICONS);
-    for (const id of PANEL_IDS) for (const m of [panels.byId[id].userData.face, panels.byId[id].userData.bevel]) {
-      m.emissive.set(signal); m.emissiveIntensity = 0;
-    }
-    links = linksMod.buildLinks(T3, LINKS, signal);
-    scene.add(panels.group, links.group);
+    panels = panelsMod.buildPanels(T3, PANEL_IDS, ICONS, signal);
+    glow = glowMod.buildGlow(T3, signal, N);
+    PANEL_IDS.forEach((id, i) => {
+      const { face: f, bevel: b } = panels.byId[id].userData;
+      for (const m of [f, b]) { m.emissive.set(signal); m.emissiveIntensity = 0; }
+      panels.byId[id].add(glow.halos[i]);
+    });
+    links = linksMod.buildLinks(T3, LINKS, THREADS, signal);
+    const warmLight = new T3.DirectionalLight(signal, 0);
+    warmLight.position.set(-30, 20, 60);
+    scene.add(panels.group, links.group, glow.haze, warmLight);
 
     // ---- state ----
     let size = { width: 1, height: 1 }, aspect = 1, layout = layoutFor(1), tops = [], heights = [];
     let level = 0, pixelRatio = 1, msaa = samples;
-    let T = 0, time = 0, last = 0, visible = false;
-    let fpsTime = 0, fpsFrames = 0, levelAt = performance.now(), ring = 0, havePrev = false, prevAssembled = false;
+    let T = 0, time = 0, last = 0, visible = false, gold = 0, waveClock = -1, halosOn = true;
+    let fpsTime = 0, fpsFrames = 0, levelAt = performance.now(), havePrev = false, prevAssembled = false;
+    const cycle = ringCycle(LINKS);
+    const walkAt = {}; // where each plate sits on the finale wave's walk round the ring
+    LINKS.forEach((l, i) => { walkAt[cycle[i].reversed ? l.to : l.from] = cycle[i].order; });
+    const steel = new T3.Color();
+    const coolSteel = new T3.Color(...COOL_STEEL);
+    const warmSteel = new T3.Color(...WARM_STEEL);
     const intervals = [];
     const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
     const glint = Object.fromEntries(PANEL_IDS.map((id) => [id, 0]));
     // scratch values reused every frame
-    const amounts = LINKS.map(() => 0);
-    const prevAmounts = LINKS.map(() => 0);
+    const amounts = THREADS.map(() => 0);
+    const prevAmounts = THREADS.map(() => 0);
+    const lit = PANEL_IDS.map(() => 0);
+    const linkState = { time: 0, threads: amounts, ringGain: 0, threadGain: 0, wave: -9, waveGain: 0, cycle };
     const focus = PANEL_IDS.map(() => 0);
     const face = [0, 0];
     const pose = { pos: [0, 0, 0], rot: [0, 0, 0] };
@@ -158,16 +183,19 @@ export async function startMap({ root, canvas }) {
         obj.position.set(pose.pos[0], pose.pos[1], pose.pos[2]);
         obj.rotation.set(pose.rot[0], pose.rot[1], pose.rot[2]);
       }
-      for (let i = 0; i < LINKS.length; i++) amounts[i] = linkAmount(T, LINKS[i].at);
+      for (let i = 0; i < THREADS.length; i++) amounts[i] = threadAmount(T, i);
       const assembled = assembleAmount(T) >= 1;
       if (havePrev) {
-        for (let i = 0; i < LINKS.length; i++) if (prevAmounts[i] < 1 && amounts[i] >= 1) glint[LINKS[i].to] = 1;
-        if (!prevAssembled && assembled) ring = 1;
+        for (let i = 0; i < THREADS.length; i++) if (prevAmounts[i] < 1 && amounts[i] >= 1) glint[THREADS[i].to] = 1;
+        if (!prevAssembled && assembled) waveClock = 0; // finale: one wave round the ring
       }
-      for (let i = 0; i < LINKS.length; i++) prevAmounts[i] = amounts[i];
+      for (let i = 0; i < THREADS.length; i++) prevAmounts[i] = amounts[i];
       havePrev = true;
       prevAssembled = assembled;
-      ring *= Math.exp(-dt * 1.3);
+      if (waveClock >= 0) { waveClock += dt; if (waveClock > WAVE_SECONDS + 0.3) waveClock = -1; }
+      const wave = waveClock >= 0 ? waveAt(waveClock) : -9;
+      gold += (integrationAt(T) - gold) * damp(raw, 2.2);
+      for (let i = 0; i < N; i++) lit[i] += (plateLevel(T, i) - lit[i]) * damp(raw, 3.2);
       for (let i = 0; i < N; i++) {
         const id = PANEL_IDS[i];
         glint[id] *= Math.exp(-dt * 2.4);
@@ -175,14 +203,32 @@ export async function startMap({ root, canvas }) {
         const bright = 1 - RECEDE * away; // opacity: a faded plate melts into the dark room instead of showing as a black slab
         const obj = panels.byId[id];
         obj.scale.setScalar(1 - 0.3 * away);
-        const g = Math.max(glint[id], ring * 0.75);
-        const { face: f, bevel } = obj.userData;
-        bevel.emissiveIntensity = g * 1.4;
-        f.emissiveIntensity = g * 0.18;
+        const w = wave > -5 ? waveGlow(wave, walkAt[id], 0.32) : 0;
+        const g = Math.max(glint[id], w * 0.75);
+        const { face: f, bevel, glow: hole } = obj.userData;
+        bevel.emissiveIntensity = lit[i] * 0.3 + g * 1.1;
+        f.emissiveIntensity = lit[i] * 0.02 + g * 0.15;
         f.opacity = bevel.opacity = bright;
         obj.visible = bright > 0.02;
+        const holeGain = lit[i] * (0.6 + 0.5 * gold) + glint[id] * 0.5 + w * 0.9;
+        hole.visible = holeGain > 0.003;
+        hole.material.color.set(signal).multiplyScalar(HOLE_HDR * holeGain);
+        hole.material.opacity = bright;
+        glow.setHalo(i, halosOn ? (lit[i] * 0.05 * (0.5 + gold) + w * 0.05) * bright : 0);
+        f.color.copy(coolSteel).lerp(warmSteel, gold);
+        bevel.color.copy(steel.setRGB(1, 1, 1).lerp(warmSteel, gold * 0.6));
       }
-      links.update(positions, amounts, time, ring);
+      const gain = 0.8 + 0.4 * gold;
+      linkState.time = time;
+      linkState.ringGain = gain * ringShow(T);
+      linkState.threadGain = gain * threadFade(T);
+      linkState.wave = wave;
+      linkState.waveGain = wave > -5 ? 1 : 0;
+      links.update(positions, linkState);
+      bloom.strength = BLOOM_BASE + BLOOM_GOLD * gold;
+      scene.environmentIntensity = 1 + ENV_GOLD * gold;
+      warmLight.intensity = gold * 1.6;
+      glow.setHaze(HAZE_GAIN * gold, shot.target);
 
       const sp = Math.sin(shot.polar);
       camera.position.set(
@@ -204,7 +250,8 @@ export async function startMap({ root, canvas }) {
         sceneTarget.samples = 0;
         sceneTarget.dispose(); // three allocates it again, without multisampling, on the next render
       }
-      if (level >= 3) bloom.enabled = false;
+      if (level >= 2) halosOn = false;
+      if (level >= 3) { bloom.enabled = false; links.setBloom(false); }
       applySize();
     }
     function judgeFrames(now) {

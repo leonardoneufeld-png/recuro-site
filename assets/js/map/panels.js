@@ -7,6 +7,7 @@ const DEPTH = 0.4;
 const RADIUS = 0.6;
 const ICON_SCALE = 1.2;
 const BEVEL = 0.1;
+const BACKING_Z = -DEPTH / 2 - BEVEL - 0.04; // just behind the back face: seen only through the cut-outs
 
 function plateShape(T3, outlines) {
   const s = new T3.Shape();
@@ -35,7 +36,15 @@ const plateGeometry = (T3, outlines) => {
   return g;
 };
 
-export function buildPanels(T3, ids, icons) {
+// The icon shapes again as flat sheets of light. They sit behind the plate, so the holes glow like a lit stencil.
+function backingGeometry(T3, outlines) {
+  const shapes = outlines.map((o) => new T3.Shape(o.map(([x, y]) => new T3.Vector2(x * ICON_SCALE, y * ICON_SCALE))));
+  const g = new T3.ShapeGeometry(shapes);
+  g.translate(0, 0, BACKING_Z);
+  return g;
+}
+
+export function buildPanels(T3, ids, icons, signal = '#f0c987') {
   const group = new T3.Group();
   const byId = {};
   const textures = brushTextures(T3);
@@ -48,11 +57,14 @@ export function buildPanels(T3, ids, icons) {
     const bevel = new T3.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.1, transparent: true });
     const mesh = new T3.Mesh(plateGeometry(T3, icons[id]), [face, bevel]);
     const panel = new T3.Group();
-    panel.add(mesh);
-    panel.userData = { face, bevel };
+    const glowMat = new T3.MeshBasicMaterial({ color: new T3.Color(signal), blending: T3.AdditiveBlending, transparent: true, depthWrite: false });
+    const glow = new T3.Mesh(backingGeometry(T3, icons[id]), glowMat);
+    glow.visible = false;
+    panel.add(mesh, glow);
+    panel.userData = { face, bevel, glow };
     group.add(panel);
     byId[id] = panel;
-    materials.push(face, bevel);
+    materials.push(face, bevel, glowMat);
   }
   group.userData = { textures, materials };
   return { group, byId };
