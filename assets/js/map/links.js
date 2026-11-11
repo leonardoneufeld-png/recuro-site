@@ -1,11 +1,13 @@
 // Light that flows between plates: curved ribbons drawn by a shader. Each ribbon is a gentle arc between two plate edges
 // with a bright thin core and a feathered edge, a soft head while it draws in, and a few soft highlights that travel
 // along it continuously. Everything is a function of time and uniforms, so nothing ever switches on in one frame.
-import { edgePoint } from './motion.js';
-
-const HALF_W = 6.2;
-const HALF_H = 4.2;
-const GAP = 0.5;
+const HALF_W = 6.1; // plate rim, bevel included
+const HALF_H = 4.1;
+const TUCK = 0.3; // the ribbon ends this far under the plate, so the join is hidden
+const RIM_LEN = 5;
+const RIM_WIDTH = 0.9;
+const RIM_GAIN = 1.5;
+const RIM_Z = 0.31; // just in front of the plate's face
 const SEG = 44;
 const HALF_WIDTH = 0.34; // world units, across the ribbon, before the shader feathers it
 const ARC_SIDE = 0.15; // sideways bulge as a share of the length
@@ -47,11 +49,12 @@ void main() {
   float profile = (exp(-a * a * 15.0) + 0.3 * uFeather * exp(-a * a * 3.4)) * (1.0 - smoothstep(0.72, 1.0, a));
   float reach = uHead * 1.16;
   float drawn = 1.0 - smoothstep(reach - 0.16, reach, u); // soft head that fades back into the line
-  float tip = exp(-pow((u - uHead) / 0.035, 2.0)) * (1.0 - smoothstep(0.86, 1.0, uHead));
-  float ends = smoothstep(0.0, 0.07, u) * (1.0 - smoothstep(0.93, 1.0, u));
+  float tz = (u - uHead) / 0.035;
+  float tip = exp(-tz * tz) * (1.0 - smoothstep(0.86, 1.0, uHead));
   float flow = bump(u, uPhase.x, ${SPREAD[0]}) + 0.8 * bump(u, uPhase.y, ${SPREAD[1]}) + 0.6 * bump(u, uPhase.z, ${SPREAD[2]});
-  float line = (0.5 + 0.8 * flow) * drawn * ends;
-  float wave = exp(-pow((u - uWaveU) / 0.12, 2.0)) * uWaveGain * ends;
+  float line = (0.5 + 0.8 * flow) * drawn;
+  float wz = (u - uWaveU) / 0.12;
+  float wave = exp(-wz * wz) * uWaveGain;
   float light = profile * (uGain * (line + 1.6 * tip) + wave * 2.2);
   gl_FragColor = vec4(uColor * light, 1.0);
 }`;
@@ -87,7 +90,23 @@ function arc(ca, cb, outP, outT) {
   }
 }
 
-export function buildLinks(T3, ring, threads, signal = '#f0c987') {
+// Where the plate's rim picks up the light of a link that meets it: a short bright stretch centred on the join.
+const RIM_FRAG = /* glsl */ `
+uniform vec3 uColor;
+uniform float uGain;
+varying vec2 vUv;
+void main() {
+  float az = (vUv.x - 0.5) / 0.2;
+  float along = exp(-az * az);
+  float v = clamp(vUv.y, 0.0, 1.0); // a negative sqrt or pow input would give NaN, and bloom spreads one NaN pixel over the whole screen
+  float across = v * v * v;
+  gl_FragColor = vec4(uColor * uGain * along * across, 1.0);
+}`;
+const RIM_VERT = /* glsl */ `
+varying vec2 vUv;
+void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+
+export function buildLinks(T3, ring, threads, signal = '#f0c987', plates = {}) {
   const group = new T3.Group();
   const base = new T3.Color(signal);
   const shared = { uColor: { value: base }, uFeather: { value: 1 }, uWidth: { value: HALF_WIDTH } };
@@ -101,6 +120,19 @@ export function buildLinks(T3, ring, threads, signal = '#f0c987') {
     if (i < SEG) { const v = i * 2; index.push(v, v + 1, v + 2, v + 1, v + 3, v + 2); }
   }
   const owned = [];
+  const rimGeometry = new T3.PlaneGeometry(RIM_LEN, RIM_WIDTH);
+  owned.push(rimGeometry);
+  const makeRim = (plate) => {
+    const material = new T3.ShaderMaterial({
+      uniforms: { uColor: shared.uColor, uGain: { value: 0 } }, vertexShader: RIM_VERT, fragmentShader: RIM_FRAG,
+      transparent: true, depthWrite: false, blending: T3.AdditiveBlending,
+    });
+    const mesh = new T3.Mesh(rimGeometry, material);
+    mesh.visible = false;
+    plate.add(mesh);
+    owned.push(material);
+    return mesh;
+  };
   const make = (link, k) => {
     const geometry = new T3.BufferGeometry();
     geometry.setAttribute('position', new T3.BufferAttribute(new Float32Array((SEG + 1) * 6), 3));
@@ -120,31 +152,68 @@ export function buildLinks(T3, ring, threads, signal = '#f0c987') {
     mesh.visible = false;
     group.add(mesh);
     owned.push(geometry, material);
-    return { link, mesh, geometry, u, seed: (k * 0.37) % 1 };
+    const rims = [makeRim(plates[link.from]), makeRim(plates[link.to])];
+    return { link, mesh, geometry, u, rims, seed: (k * 0.37) % 1 };
   };
   const ringItems = ring.map((l, k) => make(l, k));
   const threadItems = threads.map((l, k) => make(l, k + 3));
 
-  const pa = [0, 0, 0];
-  const pb = [0, 0, 0];
-  const ca = [0, 0, 0];
-  const cb = [0, 0, 0];
   const ea = [0, 0, 0];
   const eb = [0, 0, 0];
-  function place(item, positions, head, gain, time) {
-    const { mesh, geometry, u, link } = item;
-    mesh.visible = gain > 0.003 && head > 0.003;
+  const other = new T3.Vector3();
+  const world = new T3.Vector3();
+  const join = [[0, 0], [0, 0]];
+  // The point where a ribbon meets `plate` on the way to the plate at `toPos`: on the rim, in the plate's own frame
+  // (so tilted and shrunken plates still get it right), pushed under the plate by TUCK. Returns the world point in `out`.
+  function rimPoint(plate, toPos, out, slot) {
+    other.copy(toPos);
+    plate.worldToLocal(other);
+    const dx = other.x;
+    const dy = other.y;
+    const t = Math.min(HALF_W / Math.max(Math.abs(dx), 1e-6), HALF_H / Math.max(Math.abs(dy), 1e-6));
+    const len = Math.hypot(dx, dy) || 1;
+    const jx = dx * t - (dx / len) * TUCK;
+    const jy = dy * t - (dy / len) * TUCK;
+    join[slot][0] = dx * t;
+    join[slot][1] = dy * t;
+    world.set(jx, jy, 0);
+    plate.localToWorld(world);
+    out[0] = world.x; out[1] = world.y; out[2] = world.z;
+  }
+  // Lay a rim pick-up along the edge the join sits on, centred on the join.
+  function setRim(mesh, slot, gain) {
+    mesh.visible = gain > 0.003;
     if (!mesh.visible) return;
-    positions[link.from].toArray(ca);
-    positions[link.to].toArray(cb);
-    edgePoint(ca, cb, HALF_W, HALF_H, GAP, ea);
-    edgePoint(cb, ca, HALF_W, HALF_H, GAP, eb);
+    const [jx, jy] = join[slot];
+    const sideways = Math.abs(jx) / HALF_W > Math.abs(jy) / HALF_H;
+    const inset = RIM_WIDTH / 2 - 0.05;
+    if (sideways) {
+      const sx = Math.sign(jx) || 1;
+      mesh.position.set(sx * (HALF_W - inset), jy, RIM_Z);
+      mesh.rotation.z = -sx * Math.PI / 2;
+    } else {
+      const sy = Math.sign(jy) || 1;
+      mesh.position.set(jx, sy * (HALF_H - inset), RIM_Z);
+      mesh.rotation.z = sy > 0 ? 0 : Math.PI;
+    }
+    mesh.material.uniforms.uGain.value = gain;
+  }
+  function place(item, positions, head, gain, time) {
+    const { mesh, geometry, u, link, rims } = item;
+    const live = gain > 0.003 && head > 0.003;
+    mesh.visible = live;
+    if (!live) { rims[0].visible = rims[1].visible = false; return; }
+    rimPoint(plates[link.from], positions[link.to], ea, 0);
+    rimPoint(plates[link.to], positions[link.from], eb, 1);
     arc(ea, eb, geometry.attributes.position.array, geometry.attributes.aTan.array);
     geometry.attributes.position.needsUpdate = true;
     geometry.attributes.aTan.needsUpdate = true;
     u.uHead.value = head;
     u.uGain.value = gain;
     u.uPhase.value.set((time * SPEEDS[0] + item.seed) % 1, (time * SPEEDS[1] + item.seed * 1.7 + 0.33) % 1, (time * SPEEDS[2] + item.seed * 2.3 + 0.66) % 1);
+    const sway = 0.85 + 0.15 * Math.sin(time * 0.9 + item.seed * 6);
+    setRim(rims[0], 0, gain * RIM_GAIN * Math.min(1, head * 8) * sway);
+    setRim(rims[1], 1, gain * RIM_GAIN * Math.min(1, Math.max(0, (head - 0.9) * 10)) * sway);
   }
 
   // s: { time, ring[], threads[] (draw amounts), ringGain, threadGain, wave, waveGain, cycle[] ({order, reversed}) }

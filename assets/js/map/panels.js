@@ -1,5 +1,6 @@
 // Steel plates with the icon cut out: satin face, polished bevel. One pair of materials per panel so one can glint alone.
 import { brushTextures } from './brush.js';
+import { buildHole } from './glow.js';
 
 const W = 12;
 const H = 8;
@@ -36,19 +37,12 @@ const plateGeometry = (T3, outlines) => {
   return g;
 };
 
-// The icon shapes again as flat sheets of light. They sit behind the plate, so the holes glow like a lit stencil.
-function backingGeometry(T3, outlines) {
-  const shapes = outlines.map((o) => new T3.Shape(o.map(([x, y]) => new T3.Vector2(x * ICON_SCALE, y * ICON_SCALE))));
-  const g = new T3.ShapeGeometry(shapes);
-  g.translate(0, 0, BACKING_Z);
-  return g;
-}
-
 export function buildPanels(T3, ids, icons, signal = '#f0c987') {
   const group = new T3.Group();
   const byId = {};
   const textures = brushTextures(T3);
   const materials = [];
+  const holeTextures = [];
   for (const id of ids) {
     const face = new T3.MeshPhysicalMaterial({
       color: 0xd9d6d0, metalness: 1, roughness: 0.34, roughnessMap: textures.roughnessMap,
@@ -57,16 +51,16 @@ export function buildPanels(T3, ids, icons, signal = '#f0c987') {
     const bevel = new T3.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.1, transparent: true });
     const mesh = new T3.Mesh(plateGeometry(T3, icons[id]), [face, bevel]);
     const panel = new T3.Group();
-    const glowMat = new T3.MeshBasicMaterial({ color: new T3.Color(signal), blending: T3.AdditiveBlending, transparent: true, depthWrite: false });
-    const glow = new T3.Mesh(backingGeometry(T3, icons[id]), glowMat);
-    glow.visible = false;
+    const hole = buildHole(T3, icons[id], ICON_SCALE, BACKING_Z, signal);
+    const glow = hole.mesh;
     panel.add(mesh, glow);
     panel.userData = { face, bevel, glow };
     group.add(panel);
     byId[id] = panel;
-    materials.push(face, bevel, glowMat);
+    materials.push(face, bevel, hole.material);
+    holeTextures.push(hole.texture);
   }
-  group.userData = { textures, materials };
+  group.userData = { textures, materials, holeTextures };
   return { group, byId };
 }
 
@@ -74,4 +68,5 @@ export function disposePanels({ group }) {
   group.traverse((o) => o.geometry?.dispose());
   group.userData.materials.forEach((m) => m.dispose());
   Object.values(group.userData.textures).forEach((t) => t.dispose());
+  group.userData.holeTextures.forEach((t) => t.dispose());
 }
