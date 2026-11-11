@@ -97,7 +97,11 @@ export async function startMap({ root, canvas }) {
     bloom.enabled = hdr;
     composer.addPass(new T3.RenderPass(scene, camera));
     composer.addPass(bloom);
-    composer.addPass(new T3.OutputPass());
+    // OutputPass swaps the composer's two buffers by default; that is one swap per frame, so the multisampled scene target and
+    // the plain one traded places every frame and every edge flickered between smooth and aliased.
+    const output = new T3.OutputPass();
+    output.needsSwap = false;
+    composer.addPass(output);
 
     const signal = getComputedStyle(html).getPropertyValue('--signal').trim() || '#f0c987';
     scene.environment = studioMod.buildEnvironment(T3, renderer);
