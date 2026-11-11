@@ -294,7 +294,7 @@ input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--m
 
 /* ---------- case ---------- */
 .case { background: var(--ink-2); padding-bottom: var(--section); }
-.case-media img { width: 100%; aspect-ratio: 21 / 9; object-fit: cover; }
+.case-media img { width: 100%; aspect-ratio: 21 / 9; object-fit: cover; object-position: 0% 85%; } /* keeps the logo on the window in frame */
 .case-body { padding-top: clamp(3rem, 2rem + 4vw, 6rem); }
 .case-title { font-size: var(--step-4); font-weight: 560; letter-spacing: -0.045em; line-height: 1; }
 .case-client { margin-top: 0.75rem; color: var(--mut); }

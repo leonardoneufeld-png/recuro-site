@@ -183,7 +183,7 @@ export const STRINGS = {
   'case.costNote': { en: 'Early numbers, being measured.', de: 'Erste Zahlen, Messung läuft.' },
   'case.stat3.value': { en: '1,700+', de: '1’700+' },
   'case.stat3.label': { en: 'automated tests, 99% coverage', de: 'automatisierte Tests, 99 % Abdeckung' },
-  'case.photoAlt': { en: 'The counter of the bakery café', de: 'Die Theke des Bäckerei-Cafés' },
+  'case.photoAlt': { en: 'The window of the bakery café, with its name on the glass', de: 'Das Schaufenster des Bäckerei-Cafés, mit dem Namen auf dem Glas' },
 
   'about.eyebrow': { en: 'About', de: 'Über mich' },
   'about.title': { en: 'Leo Neufeld', de: 'Leo Neufeld' },
