@@ -75,7 +75,7 @@ export function buildHub(T3, signal) {
     depth: DEPTH, bevelEnabled: true, bevelSize: BEVEL, bevelThickness: BEVEL, bevelSegments: 3, curveSegments: 10,
   });
   geometry.translate(0, 0, -DEPTH / 2);
-  const face = new T3.MeshPhysicalMaterial({ color: 0xd2d4d8, metalness: 1, roughness: 0.3, transparent: true });
+  const face = new T3.MeshPhysicalMaterial({ color: 0xd2d4d8, metalness: 1, roughness: 0.42, transparent: true });
   const bevel = new T3.MeshPhysicalMaterial({ color: 0xbfc2c8, metalness: 1, roughness: 0.12, transparent: true });
   face.emissive.set(signal); bevel.emissive.set(signal);
   face.emissiveIntensity = 0; bevel.emissiveIntensity = 0;
@@ -111,7 +111,7 @@ export function buildHub(T3, signal) {
     group.rotation.set(tiltX, tiltY, 0);
     face.opacity = bevel.opacity = level;
     face.depthWrite = bevel.depthWrite = level >= 0.98;
-    face.color.copy(cf).lerp(wf, warm).multiplyScalar(0.95);
+    face.color.copy(cf).lerp(wf, warm).multiplyScalar(0.8);
     bevel.color.copy(cb).lerp(wb, warm);
     labelMat.uniforms.uGain.value = level * (1.25 + 0.6 * hover);
     labelMat.uniforms.uTime.value = time;

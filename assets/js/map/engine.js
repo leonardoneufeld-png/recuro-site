@@ -11,6 +11,7 @@ import { createLook } from './look.js';
 const INK = '#14110e';
 // ACES darkens the background a little; this gain makes the canvas match --ink on the page around it
 const BG_GAIN = 1.67;
+const ROOM_COOL = [0, 0.002, 0.007];
 const EXPOSURE = 1.8;
 const PHONE_DPR = 1.75;
 const DESKTOP_DPR = 2;
@@ -83,7 +84,8 @@ export async function startMap({ root, canvas }) {
     renderer.toneMapping = T3.ACESFilmicToneMapping;
     renderer.toneMappingExposure = EXPOSURE;
     scene = new T3.Scene();
-    scene.background = new T3.Color(INK).multiplyScalar(BG_GAIN);
+    // the room is ink with a hint of blue-black, so the gold light has a cool shadow to sit against
+    scene.background = new T3.Color(INK).multiplyScalar(BG_GAIN).add(new T3.Color(...ROOM_COOL));
     const camera = new T3.PerspectiveCamera(30, 1, 1, 600);
     // the composer renders the scene into its read buffer; only that one is multisampled
     writeTarget = new T3.WebGLRenderTarget(4, 4, hdr ? { type: T3.HalfFloatType, samples: 0 } : { samples: 0 });

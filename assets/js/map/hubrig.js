@@ -8,7 +8,7 @@ import { createHubControl } from './hubcontrol.js';
 const BASE_W = 9;
 const TILT_X = 0.18;
 const TILT_Y = 0.22;
-const TILT_MAX = 0.35;
+const TILT_MAX = 0.2; // more than this swings the face into the key light and it washes out to cream
 const READY = 0.8;
 const SPOKE_GAIN = 0.55;
 const SPOKE_GOLD = 0.2;
