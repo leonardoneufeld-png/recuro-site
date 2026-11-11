@@ -16,7 +16,6 @@
   --signal: #f0c987;
   --header-h: 5.2rem; /* main.js replaces this with the measured header height */
   --glass-opacity: 0.88; /* ink glass behind text over the live canvas; contrast over the brightest plate is tested */
-  --glass-phone-opacity: 0.95; /* phone: plates slide behind the text, so nothing readable may show through */
 
   /* semantic: light (bone) by default */
   --bg: var(--paper);
@@ -187,7 +186,18 @@ html.map-live .hero::after {
 }
 html.map-live .hero-img { visibility: hidden; opacity: 0; transition: opacity 0.6s var(--ease-out), visibility 0s linear 0.6s; }
 /* Text over the live canvas sits on ink glass. A shadow spreads it past the box, so no layout box differs from the static page. */
-html.map-live .beat-text { background: rgb(20 17 14 / var(--glass-opacity)); box-shadow: 0 0 0 1.5rem rgb(20 17 14 / var(--glass-opacity)); }
+/* desktop panel text: ink glass that feathers into the scene over 2.5rem on every side. The solid part reaches 1.5rem past the text box. */
+@media (min-width: 760px) {
+  html.map-live .beat-text { position: relative; isolation: isolate; }
+  html.map-live .beat-text::before {
+    content: ''; position: absolute; z-index: -1; inset: -4rem; pointer-events: none;
+    background: rgb(20 17 14 / var(--glass-opacity));
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent), linear-gradient(to bottom, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent), linear-gradient(to bottom, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+    mask-composite: intersect;
+  }
+}
 /* the flow text sits on ink glass as wide as the screen; its lower edge fades into the scene over 3rem, so no box edge shows */
 html.map-live .flow-head::before {
   content: ''; position: absolute; z-index: -1; top: -1rem; bottom: -3rem; left: calc(50% - 50vw); right: calc(50% - 50vw); pointer-events: none;
@@ -213,6 +223,7 @@ html.map-live:not(.map-shown) .hero-img { visibility: visible; opacity: 1; }
 
 /* One tall section with and without the map: the text pins under the header, and the map (live) or its still (static) holds below it. */
 .flow { min-height: 220svh; padding-block: 2rem 0; }
+.flow-hold { display: contents; }
 .flow-head {
   position: sticky; top: calc(var(--header-h) + 0.75rem); z-index: 2; padding-block: 1.25rem 1.5rem;
   display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
@@ -234,17 +245,34 @@ html.map-live .beat-still, html.map-live .flow-still { visibility: hidden; opaci
 html.map-live:not(.map-shown) :is(.beat-still, .flow-still) { visibility: visible; opacity: 1; }
 
 @media (max-width: 759px) {
-  .beat { min-height: 0; padding-block: calc(var(--section) * 0.45); }
-  .beat + .beat { border-top: 1px solid var(--line); }
-  .beat-grid { grid-template-columns: 1fr; row-gap: 2rem; }
-  .beat-text, .beat-still,
-  .beat[data-panel='stock'] .beat-text, .beat[data-panel='staff'] .beat-text, .beat[data-panel='invoices'] .beat-text,
-  .beat[data-panel='stock'] .beat-still, .beat[data-panel='staff'] .beat-still, .beat[data-panel='invoices'] .beat-still { grid-column: 1; grid-row: auto; }
-  .beat-still { order: -1; }
-  /* over the live canvas the text sits on ink glass at least as dense as on desktop, so no plate reads through it */
-  html.map-live .beat-text { background: rgb(20 17 14 / var(--glass-phone-opacity)); box-shadow: 0 0 0 1.25rem rgb(20 17 14 / var(--glass-phone-opacity)); }
-  .flow-body { grid-column: 1 / -1; }
-  .flow-still { aspect-ratio: 16 / 10; top: 52svh; }
+  /* Phone: scrollytelling. The top part under the header is the stage (the canvas when live, the panel's still when not);
+     the text sits below it on opaque ink. Each panel is a frame pinned under the header while the next frame rises over it
+     from below, so text never enters the stage. Same boxes with and without the map. */
+  :root { --stage-share: 0.44; --stage-h: calc((100svh - var(--header-h)) * var(--stage-share)); }
+  @media (max-height: 700px) { :root { --stage-share: 0.36; } }
+  .beats { display: flow-root; }
+  .beat {
+    position: sticky; top: var(--header-h); display: block; min-height: 0; padding: 0;
+    height: calc(100svh - var(--header-h)); margin-bottom: 60svh;
+  }
+  .beat-grid { display: flex; flex-direction: column; width: 100%; height: 100%; margin: 0; }
+  .beat-still, .beat[data-panel] .beat-still { order: 0; flex: none; width: 100%; height: var(--stage-h); aspect-ratio: auto; object-fit: cover; }
+  .beat-text, .beat[data-panel] .beat-text {
+    order: 1; flex: 1 1 auto; min-height: 0; padding: 0.9rem var(--gutter) 0; background: var(--ink); box-shadow: none; overflow: clip;
+  }
+  .motion .beat-text.reveal { opacity: 1; transform: none; transition: none; }
+  .beat-meta { margin-bottom: 0.5rem; }
+  .beat-title { font-size: clamp(1.45rem, 1.2rem + 1.2vw, 1.8rem); }
+  .beat-list { margin-top: 0.7rem; }
+  .beat-row { padding: 0.6rem 0 0.65rem; }
+  .beat-row dt { font-size: 0.68rem; }
+  .beat-row dd { margin-top: 0.3rem; font-size: 0.9rem; line-height: 1.38; }
+  /* flow: the text scrolls away, then the assembled map holds on its own, filling the screen under the header */
+  .flow { min-height: 0; padding-block: 0; }
+  .flow-head.wrap { position: static; display: block; width: 100%; margin: 0; padding: 1.5rem var(--gutter) 1.75rem; background: var(--ink); }
+  html.map-live .flow-head::before { content: none; }
+  .flow-hold { display: block; position: relative; height: 190svh; }
+  .flow-still { position: sticky; top: calc(var(--header-h) + 1rem); width: calc(100% - 2 * var(--gutter)); margin: 0 auto; height: calc(100svh - var(--header-h) - 2rem); aspect-ratio: auto; object-fit: contain; }
 }
 
 .tag {

@@ -1,7 +1,7 @@
 // Scroll-driven steel panels on a fixed canvas behind the page. startMap() returns { stop() } or null when the map may not run.
 import { mayRun, nextLevel, ladderActive, isLocalHost, estimateRefreshHz, resizeMatters, LAST_LEVEL, LOW_PIXEL_RATIO } from './gate.js';
 import {
-  PANEL_IDS, LINKS, THREADS, SCATTER, layoutFor, timelineAt, shotAt, assembleAmount, threadAmount, plateLevel,
+  PANEL_IDS, LINKS, THREADS, scatterFor, stageCentre, STAGE, PHONE_ASPECT, layoutFor, timelineAt, shotAt, assembleAmount, threadAmount, plateLevel,
   threadFade, ringShow, integrationAt, ringCycle, waveAt, waveGlow, WAVE_SECONDS,
 } from './cues.js';
 import { ICONS } from './icons.js';
@@ -22,11 +22,11 @@ const N = PANEL_IDS.length;
 const BLOOM_BASE = 0.4;
 const BLOOM_GOLD = 0.15;
 const ENV_GOLD = 0.12;
-const HAZE_GAIN = 0.04;
+const HAZE_GAIN = 0.055;
 const HOLE_HDR = 0.85;
 const WAVE_CAP = 0.3; // the finale wave brightens an icon by at most this much, so it never flares to white
 const COOL_STEEL = [0.84, 0.85, 0.87];
-const WARM_STEEL = [0.9, 0.87, 0.82]; // steel stays steel: the gold comes from lights, not from tinting the metal
+const WARM_STEEL = [0.87, 0.855, 0.83]; // steel stays steel: the gold comes from lights, not from tinting the metal
 
 const mq = (q) => window.matchMedia(q);
 
@@ -115,7 +115,7 @@ export async function startMap({ root, canvas }) {
     scene.add(panels.group, links.group, glow.haze, warmLight);
 
     // ---- state ----
-    let size = { width: 1, height: 1 }, aspect = 1, layout = layoutFor(1), tops = [], heights = [];
+    let size = { width: 1, height: 1 }, aspect = 1, layout = layoutFor(1), scatter = scatterFor(1), stageDelta = 0, tops = [], heights = [];
     let level = 0, pixelRatio = 1, msaa = samples;
     let T = 0, time = 0, last = 0, visible = false, gold = 0, waveClock = -1, halosOn = true;
     let fpsTime = 0, fpsFrames = 0, levelAt = performance.now(), havePrev = false, prevAssembled = false;
@@ -139,9 +139,28 @@ export async function startMap({ root, canvas }) {
     const pose = { pos: [0, 0, 0], rot: [0, 0, 0] };
     const positions = Object.fromEntries(PANEL_IDS.map((id) => [id, panels.byId[id].position]));
 
+    const phoneQuery = mq('(max-width: 759px)');
+    const beatsEl = root.querySelector('.beats');
+    const holdEl = root.querySelector('.flow-hold');
+    const topOf = (el, y) => el.getBoundingClientRect().top + y;
     const measure = () => {
       const y = window.scrollY;
-      tops = sections.map((s) => s.getBoundingClientRect().top + y);
+      if (phoneQuery.matches && beatsEl && holdEl) {
+        // phone: the panels are pinned frames stacked on each other, so their own boxes sit at the pinned position.
+        // Their place in the flow is the container's top plus whole units; the flow text counts as the end of the last unit,
+        // and the held map (not the text) is the flow stop, so the map assembles while the text scrolls away.
+        const unit = sections[1].offsetHeight + parseFloat(getComputedStyle(sections[1]).marginBottom);
+        const base = topOf(beatsEl, y);
+        const holdTop = topOf(holdEl, y);
+        tops = [topOf(sections[0], y), ...PANEL_IDS.map((_, i) => base + i * unit), holdTop];
+        heights = [sections[0].offsetHeight, ...PANEL_IDS.map((_, i) => (i === N - 1 ? holdTop - (base + i * unit) : unit)), holdEl.offsetHeight];
+        const header = document.querySelector('.site-header');
+        const hh = header ? header.getBoundingClientRect().height : 0;
+        stageDelta = stageCentre(hh, innerHeight, parseFloat(getComputedStyle(root).getPropertyValue('--stage-share')) || STAGE.share) - STAGE.centre;
+        return;
+      }
+      stageDelta = 0;
+      tops = sections.map((s) => topOf(s, y));
       heights = sections.map((s) => s.offsetHeight);
     };
     const applySize = () => {
@@ -158,6 +177,7 @@ export async function startMap({ root, canvas }) {
       composer.setSize(size.width, size.height);
       camera.aspect = aspect;
       layout = layoutFor(aspect);
+      scatter = scatterFor(aspect);
       measure();
     };
 
@@ -180,7 +200,7 @@ export async function startMap({ root, canvas }) {
       }
       for (let i = 0; i < N; i++) {
         const id = PANEL_IDS[i];
-        panelPose({ index: i, T, time, scatter: SCATTER[id], layout: layout[id], face }, pose);
+        panelPose({ index: i, T, time, scatter: scatter[id], layout: layout[id], face }, pose);
         const obj = panels.byId[id];
         obj.position.set(pose.pos[0], pose.pos[1], pose.pos[2]);
         obj.rotation.set(pose.rot[0], pose.rot[1], pose.rot[2]);
@@ -232,7 +252,7 @@ export async function startMap({ root, canvas }) {
       links.update(positions, linkState);
       bloom.strength = BLOOM_BASE + BLOOM_GOLD * gold;
       scene.environmentIntensity = 1 + ENV_GOLD * gold;
-      warmLight.intensity = gold * 0.6;
+      warmLight.intensity = gold * 0.25;
 
       const sp = Math.sin(shot.polar);
       camera.position.set(
@@ -241,7 +261,7 @@ export async function startMap({ root, canvas }) {
         shot.target[2] + shot.distance * sp * Math.cos(shot.azimuth),
       );
       camera.lookAt(shot.target[0], shot.target[1], shot.target[2]);
-      camera.setViewOffset(size.width, size.height, -shot.shiftX * size.width, 0, size.width, size.height);
+      camera.setViewOffset(size.width, size.height, -shot.shiftX * size.width, -(shot.shiftY + stageDelta * (aspect < PHONE_ASPECT ? 1 - assembleNow : 0)) * size.height, size.width, size.height);
       camera.updateMatrixWorld();
       // the room glow sits behind whatever is framed: the screen position of the map once assembled
       const asm = assembleNow;

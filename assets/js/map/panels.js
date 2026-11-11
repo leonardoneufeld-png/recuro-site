@@ -37,6 +37,17 @@ const plateGeometry = (T3, outlines) => {
   return g;
 };
 
+// No pixel of a plate may reach the bloom threshold on its own: a polished bevel or hole wall that mirrors the key light
+// would otherwise bloom into a white star. The cap sits under the threshold in engine.js; only light sources go above it.
+const PLATE_CAP = 1.0;
+function capRadiance(material) {
+  material.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>',
+      `#include <opaque_fragment>\n  gl_FragColor.rgb = min(gl_FragColor.rgb, vec3(${PLATE_CAP.toFixed(2)}));`);
+  };
+  material.customProgramCacheKey = () => 'plate-cap';
+}
+
 export function buildPanels(T3, ids, icons, signal = '#f0c987') {
   const group = new T3.Group();
   const byId = {};
@@ -49,6 +60,8 @@ export function buildPanels(T3, ids, icons, signal = '#f0c987') {
       anisotropy: 0.85, anisotropyMap: textures.anisotropyMap, transparent: true,
     });
     const bevel = new T3.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.1, transparent: true });
+    capRadiance(face);
+    capRadiance(bevel);
     const mesh = new T3.Mesh(plateGeometry(T3, icons[id]), [face, bevel]);
     const panel = new T3.Group();
     const hole = buildHole(T3, icons[id], ICON_SCALE, BACKING_Z, signal);

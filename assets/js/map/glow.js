@@ -112,8 +112,11 @@ export function buildGlow(T3, signal, halos = 0) {
     owned.push(geometry, material);
     return mesh;
   };
+  // amber, with less green than the signal gold, so the room reads as warm light and not olive
+  const amber = new T3.Color().setRGB(1.0, 0.46, 0.14);
   const haze = mk(new T3.PlaneGeometry(2, 2), HAZE_VERT, HAZE_FRAG, {
-    uAspect: { value: 1.6 }, uCentre: { value: new T3.Vector2(0.5, 0.5) }, uRadius: { value: 0.62 },
+    uColor: { value: amber },
+    uAspect: { value: 1.6 }, uCentre: { value: new T3.Vector2(0.5, 0.5) }, uRadius: { value: 0.5 },
   });
   haze.renderOrder = -10;
   const plateHalos = Array.from({ length: halos }, () => {

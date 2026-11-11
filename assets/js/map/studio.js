@@ -11,7 +11,8 @@ const LIGHTS = [
   [58, 6, 14, 6, 80, 1.0, 0, false], // strip right: lights the right bevels
   [-58, -4, -4, 5, 80, 0.85, 0, false], // strip left
   [10, 66, -10, 60, 5, 0.9, 0.2, false], // overhead strip: lights the top bevels
-  [30, -10, 55, 90, 70, 0.085, 0.3, true], // very dim fill so shadowed steel is not black
+  [30, -10, 55, 90, 70, 0.17, 0.3, true], // dim fill so shadowed steel is not black
+  [34, 8, 58, 34, 22, 0.55, 0.2, true], // second, smaller key from the right: plates that turn away from the first still catch a highlight
   [0, -50, 25, 80, 8, 0.3, 0.4, false], // faint floor strip for the bottom bevels
 ];
 

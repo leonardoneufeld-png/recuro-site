@@ -39,13 +39,33 @@ export function layoutFor(aspect) {
 // others in z, which reads as depth.
 const scatter = (pos, rot) => Object.freeze({ pos: Object.freeze(pos), rot: Object.freeze(rot) });
 export const SCATTER = Object.freeze({
-  pos: scatter([-26, 10.6, -4], [0.1, 0.28, 0.05]),
+  pos: scatter([-26, 10.6, -4], [-0.08, 0.1, 0.05]),
   stock: scatter([-7.4, 13.1, -10], [-0.12, 0.2, -0.04]),
   ordering: scatter([12.4, 10.2, -6], [0.08, -0.3, 0.07]),
   staff: scatter([28.8, 13.3, -12], [-0.06, -0.14, -0.09]),
-  cogs: scatter([20.8, -2, -8], [0.14, -0.22, 0.1]),
+  cogs: scatter([20.8, -2, -8], [-0.1, -0.24, 0.1]),
   invoices: scatter([-20.5, 8.2, -19], [-0.1, 0.18, 0.03]),
 });
+
+// Phone: the top of the screen under the header is the stage (the canvas, or the panel's still), and the text lives
+// below it. `share` is the stage's share of the screen under the header; `centre` is where the stage's middle sits as a
+// fraction of the viewport height (for the usual header and a 844 px phone).
+export const STAGE = Object.freeze({ share: 0.44, centre: 0.3 });
+// Below this aspect the page uses the phone layout (see the max-width 759px rules in site.css).
+export const PHONE_ASPECT = 0.62;
+export const stageCentre = (headerPx, vh, share = STAGE.share) => (headerPx + (share / 2) * (vh - headerPx)) / vh;
+
+// Portrait hero and panel stops: its own arrangement, built like the assembled 2 x 3 grid but loosened in x, y and z, so
+// all six plates fit in the stage above the headline, overlap a little in depth and lean toward different lights.
+export const SCATTER_PORTRAIT = Object.freeze({
+  pos: scatter([-6.6, 9.6, -1], [-0.06, 0.1, 0.04]),
+  stock: scatter([7.2, 10.4, -6], [-0.1, -0.22, -0.04]),
+  ordering: scatter([7.0, -0.6, 1], [0.1, -0.28, 0.05]),
+  staff: scatter([-7.2, 0.4, -4], [-0.06, 0.2, -0.05]),
+  cogs: scatter([-6.4, -9.8, -2], [-0.1, -0.16, 0.06]),
+  invoices: scatter([6.8, -10.2, -7], [-0.1, -0.24, -0.03]),
+});
+export const scatterFor = (aspect) => (aspect < 1 ? SCATTER_PORTRAIT : SCATTER);
 
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
@@ -129,11 +149,12 @@ export function distanceFor(fit, fovDeg, aspect) {
 
 // Hero: plates about 1.5x larger than the first version. Landscape looks at the middle of the scatter; portrait looks
 // below it so the plates fill the upper half and the headline has the bottom.
-const HERO = { fit: [41, 38], target: [[0, 1.4, 0], [-2, -5, -8]], azimuth: 0.18, polar: Math.PI / 2 - 0.08, hold: 0.85 };
-const PANEL = { fit: [20, 17], azimuth: 0.22, polar: Math.PI / 2 - 0.05, shiftX: 0.22, portraitDrop: 4.5 };
+const HERO = { fit: [41, 35], target: [[0, 1.4, 0], [0, 0, -3]], azimuth: 0.18, polar: Math.PI / 2 - 0.08, hold: 0.85 };
+const PANEL = { fit: [20, 15], azimuth: 0.22, polar: Math.PI / 2 - 0.05, shiftX: 0.22 };
+const STAGE_SHIFT = STAGE.centre - 0.5; // phone: how far the framed plate sits above the screen's middle
 // Flow: the assembled map is framed in the lower part of the screen under the pinned text. region = share of the screen
 // height the map may use, margin = share of that space it fills.
-const FLOW = { region: [0.64, 0.52], margin: 0.88 };
+const FLOW = { region: [0.62, 0.72], centre: [0.645, 0.56], margin: 0.88 }; // [screens with the text pinned above, phones where it scrolls away]
 
 // Distance at which a box of w x h fits the view, filling at most `margin` of each side.
 export function distanceForBox(w, h, fovDeg, aspect, margin = 0.88) {
@@ -154,8 +175,8 @@ function flowShot(aspect, k) {
   // the map has to fit the lower `region` of the screen, so size the view as if that region were the whole screen
   const distance = distanceForBox(w, h / region, FOV_DEG, aspect, FLOW.margin);
   const visibleH = 2 * distance * Math.tan((FOV_DEG * Math.PI) / 360);
-  const centreFromTop = 1 - region / 2 - 0.02;
-  return { target: [0, (centreFromTop - 0.5) * visibleH, 0], distance, polar: Math.PI / 2, azimuth: 0, shiftX: 0 };
+  const centreFromTop = FLOW.centre[k];
+  return { target: [0, (centreFromTop - 0.5) * visibleH, 0], distance, polar: Math.PI / 2, azimuth: 0, shiftX: 0, shiftY: 0 };
 }
 
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -163,21 +184,23 @@ const copyShot = (s) => ({ ...s, target: [...s.target] });
 
 function buildShots(aspect) {
   const portrait = aspect < 1;
+  const phone = aspect < PHONE_ASPECT;
   const k = portrait ? 1 : 0;
   const shots = [{
     target: [...HERO.target[k]], distance: distanceFor(HERO.fit[k], FOV_DEG, aspect),
-    polar: HERO.polar, azimuth: HERO.azimuth, shiftX: 0,
+    polar: HERO.polar, azimuth: HERO.azimuth, shiftX: 0, shiftY: phone ? STAGE_SHIFT : 0,
   }];
   PANEL_IDS.forEach((id, i) => {
     const side = i % 2 === 0 ? 1 : -1;
-    const [x, y, z] = SCATTER[id].pos;
+    const [x, y, z] = scatterFor(aspect)[id].pos;
     shots.push({
-      target: [x, portrait ? y - PANEL.portraitDrop : y, z],
+      target: [x, y, z],
       distance: distanceFor(PANEL.fit[k], FOV_DEG, aspect),
       polar: PANEL.polar, azimuth: side * PANEL.azimuth, shiftX: portrait ? 0 : side * PANEL.shiftX,
+      shiftY: phone ? STAGE_SHIFT : 0,
     });
   });
-  shots.push(flowShot(aspect, k));
+  shots.push(flowShot(aspect, aspect < PHONE_ASPECT ? 1 : 0));
   return shots;
 }
 
@@ -214,5 +237,6 @@ export function shotAt(T, aspect) {
     polar: lerp(a.polar, b.polar, w),
     azimuth: lerp(a.azimuth, b.azimuth, w),
     shiftX: lerp(a.shiftX, b.shiftX, w),
+    shiftY: lerp(a.shiftY, b.shiftY, w),
   };
 }
