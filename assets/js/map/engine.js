@@ -333,12 +333,19 @@ export async function startMap({ root, canvas }) {
     T = timelineAt(tops, heights, window.scrollY, innerHeight);
     last = performance.now();
     levelAt = last; // the first two seconds are never scored
-    frame(0.016);
-    // the frame must really be on the canvas before the stills give way
+    // the frame must really be on the canvas before the stills give way. A first read can come back empty (the canvas
+    // is off-screen, or the buffer was presented already), so it gets three tries on fresh frames before the map gives up.
     const px = new Uint8Array(4);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.readPixels(gl.drawingBufferWidth >> 1, gl.drawingBufferHeight >> 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
-    if (px[0] + px[1] + px[2] === 0) { stop(); return null; } // alpha is always 255 here, so only the colour counts
+    let painted = false;
+    for (let attempt = 0; attempt < 3 && !painted; attempt++) {
+      if (attempt) await new Promise((r) => requestAnimationFrame(r));
+      if (stopped) return null;
+      frame(0.016);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.readPixels(gl.drawingBufferWidth >> 1, gl.drawingBufferHeight >> 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      painted = px[0] + px[1] + px[2] > 0; // alpha is always 255 here, so only the colour counts
+    }
+    if (!painted) { stop(); return null; }
 
     if (force && local) window.__map = { get T() { return T; }, get wave() { return waveClock; } };
     html.classList.add('map-live');
