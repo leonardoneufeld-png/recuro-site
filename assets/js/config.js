@@ -2,7 +2,7 @@ import { STRINGS } from './strings.js';
 
 // Fill these in before launch; tools/check-launch.mjs refuses to pass while they are placeholders.
 export const BOOKING_URL = ''; // e.g. https://cal.com/<user>/30min
-export const CONTACT_EMAIL = 'TODO@recuro.ch';
+export const CONTACT_EMAIL = 'hello@recuro.ch';
 
 // Only an https link on cal.com itself counts; anything else falls back to email.
 export const isBookingLive = (url) => {
