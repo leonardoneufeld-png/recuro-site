@@ -113,7 +113,7 @@ export function buildLinks(T3, ring, threads, signal = '#f0c987') {
       uWaveU: { value: -9 }, uWaveGain: { value: 0 },
     };
     const material = new T3.ShaderMaterial({
-      uniforms: u, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, blending: T3.AdditiveBlending,
+      uniforms: u, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, blending: T3.AdditiveBlending, side: T3.DoubleSide,
     });
     const mesh = new T3.Mesh(geometry, material);
     mesh.frustumCulled = false; // the curve is rewritten every frame; its bounds are not tracked

@@ -20,12 +20,12 @@ const RECEDE = 1; // out-of-focus panels fade and shrink a little during a beat:
 const N = PANEL_IDS.length;
 // gold: everything below scales with `gold` (0 at the hero, 1 on the flow map)
 const BLOOM_BASE = 0.4;
-const BLOOM_GOLD = 0.3;
-const ENV_GOLD = 0.3;
-const HAZE_GAIN = 0.085;
-const HOLE_HDR = 2.1;
+const BLOOM_GOLD = 0.15;
+const ENV_GOLD = 0.12;
+const HAZE_GAIN = 0.02;
+const HOLE_HDR = 0.42;
 const COOL_STEEL = [0.84, 0.85, 0.87];
-const WARM_STEEL = [0.96, 0.86, 0.7];
+const WARM_STEEL = [0.92, 0.87, 0.78];
 
 const mq = (q) => window.matchMedia(q);
 
@@ -204,17 +204,17 @@ export async function startMap({ root, canvas }) {
         const obj = panels.byId[id];
         obj.scale.setScalar(1 - 0.3 * away);
         const w = wave > -5 ? waveGlow(wave, walkAt[id], 0.32) : 0;
-        const g = Math.max(glint[id], w * 0.75);
+        const g = Math.max(glint[id] * 0.6, w * 0.7);
         const { face: f, bevel, glow: hole } = obj.userData;
-        bevel.emissiveIntensity = lit[i] * 0.3 + g * 1.1;
-        f.emissiveIntensity = lit[i] * 0.02 + g * 0.15;
+        bevel.emissiveIntensity = lit[i] * 0.1 + g * 0.3;
+        f.emissiveIntensity = lit[i] * 0.01 + g * 0.03;
         f.opacity = bevel.opacity = bright;
         obj.visible = bright > 0.02;
         const holeGain = lit[i] * (0.6 + 0.5 * gold) + glint[id] * 0.5 + w * 0.9;
         hole.visible = holeGain > 0.003;
         hole.material.color.set(signal).multiplyScalar(HOLE_HDR * holeGain);
         hole.material.opacity = bright;
-        glow.setHalo(i, halosOn ? (lit[i] * 0.05 * (0.5 + gold) + w * 0.05) * bright : 0);
+        glow.setHalo(i, halosOn ? (lit[i] * 0.02 * (0.5 + gold) + w * 0.05) * bright : 0);
         f.color.copy(coolSteel).lerp(warmSteel, gold);
         bevel.color.copy(steel.setRGB(1, 1, 1).lerp(warmSteel, gold * 0.6));
       }
@@ -227,7 +227,7 @@ export async function startMap({ root, canvas }) {
       links.update(positions, linkState);
       bloom.strength = BLOOM_BASE + BLOOM_GOLD * gold;
       scene.environmentIntensity = 1 + ENV_GOLD * gold;
-      warmLight.intensity = gold * 1.6;
+      warmLight.intensity = gold * 0.6;
       glow.setHaze(HAZE_GAIN * gold, shot.target);
 
       const sp = Math.sin(shot.polar);
