@@ -13,7 +13,8 @@
   --paper: #ede8e0;
   --muted: #a8a096;
   --muted-light: #675f55;
-  --signal: #f0c987;
+  --signal: #f0c987; /* the map's light, and the three stat values on the dark case band; nowhere else */
+  --brass: #7a5a1c; /* the one accent on bone: calculator result, text-link underlines and hover, the focused field's hairline */
   --header-h: 5.2rem; /* main.js replaces this with the measured header height */
   --glass-opacity: 0.88; /* ink glass behind text over the live canvas; contrast over the brightest plate is tested */
 
@@ -306,10 +307,11 @@ html.map-live:not(.map-shown) :is(.beat-still, .flow-still) { visibility: visibl
 }
 input.field-v { transition: border-color 0.2s var(--ease-out); }
 input.field-v:hover { border-bottom-color: var(--fg); }
-input.field-v:focus { outline: none; border-bottom-color: var(--fg); }
+input.field-v:focus { outline: none; border-bottom-color: var(--brass); }
 input.field-v:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
 input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--mut); }
-.field-result .field-v { border-bottom-color: transparent; white-space: nowrap; }
+.field-result .field-v { border-bottom-color: transparent; white-space: nowrap; color: var(--brass); }
+.field-v .sep { font-variant-numeric: normal; } /* a tabular comma is as wide as a digit */
 .calc-hint { min-height: 1.4em; margin-top: 1rem; font-size: 0.9rem; color: var(--fg); }
 .calc-hint:empty { margin-top: 0; min-height: 0; }
 .calc-note { margin-top: 2rem; max-width: 46ch; font-size: 0.95rem; color: var(--mut); line-height: 1.6; }
@@ -344,7 +346,7 @@ input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--m
 }
 .stat { padding: 1.5rem 1.5rem 0 0; }
 .stat + .stat { padding-left: 1.5rem; border-left: 1px solid var(--line); }
-.stat dt { font-size: var(--step-3); font-weight: 500; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat dt { color: var(--signal); font-size: var(--step-3); font-weight: 500; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
 .stat dd { margin-top: 0.75rem; color: var(--mut); font-size: 0.95rem; max-width: 28ch; }
 .stat-note { display: block; margin-top: 0.4rem; font-style: normal; font-size: 0.8rem; letter-spacing: 0.02em; }
 
@@ -368,9 +370,9 @@ input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--m
 .text-link {
   display: inline-block; margin-top: 2rem; padding: 0.6rem 0;
   font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none;
-  border-bottom: 1px solid currentColor;
+  border-bottom: 1px solid var(--brass);
 }
-.text-link:hover { opacity: 0.75; }
+.text-link:hover, .text-link:focus-visible { color: var(--brass); opacity: 1; }
 
 @media (max-width: 760px) {
   .about { grid-template-columns: 1fr; }
@@ -392,8 +394,8 @@ input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--m
   padding-block: 2rem 2.5rem; border-top: 1px solid var(--line);
   font-size: 0.8rem; color: var(--mut);
 }
-.site-footer a { padding-block: 0.5rem; }
-.site-footer a:hover { color: var(--fg); }
+.site-footer a { padding-block: 0.5rem; text-decoration-color: var(--brass); }
+.site-footer a:hover, .site-footer a:focus-visible { color: var(--brass); }
 
 /* ---------- legal + 404 ---------- */
 .page { padding-block: 9rem var(--section); }

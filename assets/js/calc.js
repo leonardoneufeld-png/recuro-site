@@ -32,6 +32,12 @@ export function formatCHF(amount, lang) {
   return `CHF ${String(Math.round(amount)).replace(/\B(?=(\d{3})+(?!\d))/g, sep)}`;
 }
 
+// The thousands separators of a formatted amount, apart from the rest. With tabular figures on, the font gives a comma
+// the width of a digit ("19 ,968"), so the page sets the separators in a span that turns tabular figures off.
+export function splitSeparators(text) {
+  return text.split(/([,’])/).filter(Boolean).map((part) => ({ part, sep: part === ',' || part === '’' }));
+}
+
 // Which hint (a STRINGS key) the calculator should show, or null. Blank is empty, not wrong.
 export function calcHint(rawHours, rawRate) {
   const [h, r] = [rawHours, rawRate].map(parseNumber);
