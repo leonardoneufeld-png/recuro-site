@@ -1,5 +1,5 @@
 // Scroll-driven steel panels on a fixed canvas behind the page. startMap() returns { stop() } or null when the map may not run.
-import { mayRun, nextLevel, ladderActive, isLocalHost, estimateRefreshHz, resizeMatters, LAST_LEVEL, LOW_PIXEL_RATIO } from './gate.js';
+import { mayRun, nextLevel, ladderActive, isLocalHost, estimateRefreshHz, resizeMatters, LAST_LEVEL, LEVEL, pixelRatioFor } from './gate.js';
 import {
   PANEL_IDS, LINKS, THREADS, scatterFor, stageCentre, STAGE, PHONE_ASPECT, layoutFor, timelineAt, shotAt, assembleAmount, threadAmount, plateLevel,
   threadFade, ringShow, integrationAt, ringCycle, waveAt, WAVE_SECONDS,
@@ -8,13 +8,12 @@ import { ICONS } from './icons.js';
 import { damp, panelPose, presenceAmount } from './motion.js';
 import { createLook } from './look.js';
 import { createDynamics } from './dynamics.js';
+import { measureTimeline } from './timeline.js';
 
 const INK = '#14110e';
 // ACES darkens the background a little; this gain makes the canvas match --ink on the page around it
 const BG_GAIN = 1.67;
 const EXPOSURE = 1.8;
-const PHONE_DPR = 1.75;
-const DESKTOP_DPR = 2;
 const FPS_WINDOW = 60;
 const FPS_GRACE_MS = 2000;
 const POINTER_TILT = 0.12;
@@ -42,9 +41,9 @@ export async function startMap({ root, canvas }) {
   const sections = [root.querySelector('#hero'), ...PANEL_IDS.map((id) => root.querySelector(`.beat[data-panel="${id}"]`)), root.querySelector('.flow')];
   if (sections.some((s) => !s)) return null;
 
-  const [T3, panelsMod, studioMod, linksMod, glowMod, rigMod, maskMod, grainMod] = await Promise.all([
-    // (the last two are the text mask and the film grain)
-    import('../vendor/three/three.bundle.min.js'), import('./panels.js'), import('./studio.js'), import('./links.js'), import('./glow.js'), import('./hubrig.js'), import('./textmask.js'), import('./grain.js'),
+  const [T3, panelsMod, studioMod, linksMod, glowMod, rigMod, maskMod, grainMod, backdropMod] = await Promise.all([
+    // (then the text mask, the film grain and the zone video backdrops)
+    import('../vendor/three/three.bundle.min.js'), import('./panels.js'), import('./studio.js'), import('./links.js'), import('./glow.js'), import('./hubrig.js'), import('./textmask.js'), import('./grain.js'), import('./backdrop.js'),
   ]);
   if (!gate()) return null; // reduced motion may have flipped while loading
 
@@ -54,7 +53,7 @@ export async function startMap({ root, canvas }) {
   const on = (target, type, fn, opts) => { target.addEventListener(type, fn, opts); cleanups.push(() => target.removeEventListener(type, fn, opts)); };
 
   // everything below may be half built when stop() runs, so stop() checks each piece
-  let grain = null, mask = null, renderer = null, composer = null, bloom = null, panels = null, links = null, glow = null, rig = null, scene = null, writeTarget = null;
+  let grain = null, mask = null, backdrop = null, renderer = null, composer = null, bloom = null, panels = null, links = null, glow = null, rig = null, scene = null, writeTarget = null;
   let stopped = false, raf = 0;
 
   function stop() {
@@ -70,6 +69,7 @@ export async function startMap({ root, canvas }) {
     links?.dispose();
     rig?.dispose();
     glow?.dispose();
+    backdrop?.dispose();
     scene?.environment?.dispose();
     composer?.dispose();
     writeTarget?.dispose();
@@ -92,7 +92,7 @@ export async function startMap({ root, canvas }) {
     writeTarget = new T3.WebGLRenderTarget(4, 4, hdr ? { type: T3.HalfFloatType, samples: 0 } : { samples: 0 });
     composer = new T3.EffectComposer(renderer, writeTarget);
     const sceneTarget = composer.readBuffer;
-    const samples = coarse ? 2 : 4;
+    const samples = 4; // phones too: their native-pixel picture is the sharp top level, the ladder takes it away if needed
     sceneTarget.samples = samples;
     bloom = new T3.UnrealBloomPass(new T3.Vector2(4, 4), BLOOM_BASE, 0.35, 1.1);
     bloom.enabled = hdr;
@@ -120,7 +120,8 @@ export async function startMap({ root, canvas }) {
     links = linksMod.buildLinks(T3, LINKS, THREADS, signal, { ...panels.byId, hub: rig.group }, PANEL_IDS.map((id) => ({ from: 'hub', to: id })), mask.uniforms);
     const warmLight = new T3.DirectionalLight(signal, 0);
     warmLight.position.set(-30, 20, 60);
-    scene.add(panels.group, rig.group, links.group, glow.haze, warmLight);
+    backdrop = backdropMod.buildBackdrop(T3, { floor: scene.background, gain: BG_GAIN });
+    scene.add(backdrop.mesh, panels.group, rig.group, links.group, glow.haze, warmLight);
 
     // ---- state ----
     let size = { width: 1, height: 1 }, aspect = 1, layout = layoutFor(1), scatter = scatterFor(1), stageDelta = 0, tops = [], heights = [];
@@ -149,34 +150,20 @@ export async function startMap({ root, canvas }) {
     const positions = { ...Object.fromEntries(PANEL_IDS.map((id) => [id, panels.byId[id].position])), hub: rig.group.position };
 
     const phoneQuery = mq('(max-width: 759px)');
-    const beatsEl = root.querySelector('.beats');
-    const holdEl = root.querySelector('.flow-hold');
-    const topOf = (el, y) => el.getBoundingClientRect().top + y;
     const measure = () => {
-      const y = window.scrollY;
-      if (phoneQuery.matches && beatsEl && holdEl) {
-        // phone: the panels are pinned frames stacked on each other, so their own boxes sit at the pinned position.
-        // Their place in the flow is the container's top plus whole units; the flow text counts as the end of the last unit,
-        // and the held map (not the text) is the flow stop, so the map assembles while the text scrolls away.
-        const unit = sections[1].offsetHeight + parseFloat(getComputedStyle(sections[1]).marginBottom);
-        const base = topOf(beatsEl, y);
-        const holdTop = topOf(holdEl, y);
-        tops = [topOf(sections[0], y), ...PANEL_IDS.map((_, i) => base + i * unit), holdTop];
-        heights = [sections[0].offsetHeight, ...PANEL_IDS.map((_, i) => (i === N - 1 ? holdTop - (base + i * unit) : unit)), holdEl.offsetHeight];
+      ({ tops, heights } = measureTimeline(root, phoneQuery.matches)); // timeline.js, shared with the step arrows
+      if (phoneQuery.matches) {
         const header = document.querySelector('.site-header');
         const hh = header ? header.getBoundingClientRect().height : 0;
         stageDelta = stageCentre(hh, innerHeight, parseFloat(getComputedStyle(root).getPropertyValue('--stage-share')) || STAGE.share) - STAGE.centre;
         return;
       }
       stageDelta = 0;
-      tops = sections.map((s) => topOf(s, y));
-      heights = sections.map((s) => s.offsetHeight);
     };
     const applySize = () => {
       size = { width: Math.max(1, html.clientWidth), height: Math.max(1, html.clientHeight) };
       aspect = size.width / size.height;
-      const cap = coarse || size.width < 760 ? PHONE_DPR : DESKTOP_DPR;
-      pixelRatio = Math.min(devicePixelRatio || 1, level >= 1 ? LOW_PIXEL_RATIO : cap);
+      pixelRatio = pixelRatioFor(level, devicePixelRatio);
       // fixed pixel size, so a collapsing mobile toolbar never stretches the picture
       canvas.style.width = `${size.width}px`;
       canvas.style.height = `${size.height}px`;
@@ -272,7 +259,7 @@ export async function startMap({ root, canvas }) {
       linkState.stretch = dyn.stretch;
       linkState.maskOn = phoneQuery.matches ? 0 : 1;
       mask.update({ T, width: size.width, height: size.height, ratio: pixelRatio, phone: phoneQuery.matches });
-      grain.update(dt, level < 3 && !noGrain, pixelRatio);
+      grain.update(dt, level < LEVEL.bloom && !noGrain, pixelRatio);
       const pulse = rig.update({
         T, raw, dt, time, aspect, size, camera, ndc, pointer, mouse, visible, waveBusy: waveClock >= 0, gold, linkState,
       });
@@ -280,19 +267,20 @@ export async function startMap({ root, canvas }) {
       if (pulse.startRing) waveClock = 0;
       rig.group.updateMatrixWorld(true);
       links.update(positions, linkState);
+      backdrop.update(T, dt, aspect);
       composer.render(dt);
     }
 
-    // ---- quality ladder: 1 lower resolution, 2 no multisampling, 3 no bloom, 4 stills ----
+    // ---- quality ladder: 1 at most 2x, 2 at most 1.5x, 3 no multisampling, 4 no bloom, 5 stills (gate.js) ----
     function applyLevel() {
       if (level >= LAST_LEVEL) { stop(); return; }
-      if (level >= 2 && msaa > 0) {
+      if (level >= LEVEL.msaa && msaa > 0) {
         msaa = 0;
         sceneTarget.samples = 0;
         sceneTarget.dispose(); // three allocates it again, without multisampling, on the next render
       }
-      if (level >= 2) halosOn = false;
-      if (level >= 3) { bloom.enabled = false; links.setBloom(false); }
+      if (level >= LEVEL.msaa) halosOn = false;
+      if (level >= LEVEL.bloom) { bloom.enabled = false; links.setBloom(false); backdrop.off(); }
       applySize();
     }
     function judgeFrames(now) {
@@ -328,6 +316,7 @@ export async function startMap({ root, canvas }) {
     };
     const syncLoop = () => {
       const run = visible && !document.hidden && !stopped;
+      backdrop.setRunning(run);
       canvas.style.visibility = visible ? '' : 'hidden';
       if (run && !raf) { last = performance.now(); levelAt = last; fpsTime = 0; fpsFrames = 0; raf = requestAnimationFrame(tick); }
       if (!run && raf) { cancelAnimationFrame(raf); raf = 0; }

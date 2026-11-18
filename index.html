@@ -32,6 +32,23 @@
     setTimeout(function () { d.classList.remove('i18n-pending'); }, 1500);
   })();
   </script>
+  <script>
+  (function () {
+    // Loading screen: only when the 3D map will run (the same test as mayRun in map/gate.js), once per session.
+    var d = document.documentElement, n = navigator, force = /[?&]map=force(&|$)/.test(location.search);
+    if (!window.WebGL2RenderingContext || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!force && ((n.connection && n.connection.saveData) || n.deviceMemory <= 2)) return;
+    try {
+      if (sessionStorage.getItem('loader-seen')) return;
+      sessionStorage.setItem('loader-seen', '1');
+    } catch (e) {}
+    d.classList.add('loading');
+    // failsafe: never leave the page covered if the module fails
+    setTimeout(function () { d.classList.remove('loading'); }, 5000);
+  })();
+  </script>
+  <link rel="modulepreload" href="assets/js/loader/loader.js">
+  <link rel="modulepreload" href="assets/js/loader/orb.js">
   <link rel="modulepreload" href="assets/js/i18n.js">
   <link rel="modulepreload" href="assets/js/strings.js">
   <link rel="modulepreload" href="assets/js/calc.js">
@@ -39,6 +56,10 @@
   <script type="module" src="assets/js/main.js"></script>
 </head>
 <body>
+  <div class="loader" role="status" aria-label="Loading" data-i18n-aria="loader.label">
+    <canvas class="loader-orb" aria-hidden="true"></canvas>
+    <span class="wordmark" aria-hidden="true">recuro<span>.ch</span></span>
+  </div>
   <a class="skip" href="#main" data-i18n="nav.skip">Skip to content</a>
 
   <header class="site-header">
@@ -55,6 +76,11 @@
       </div>
     </nav>
   </header>
+  <nav class="stepnav" aria-label="Sections" data-i18n-aria="stepnav.label" hidden>
+    <button class="stepnav-btn" type="button" data-step="-1" aria-label="Previous section" data-i18n-aria="stepnav.prev"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square"/></svg></button>
+    <button class="stepnav-btn" type="button" data-step="1" aria-label="Next section" data-i18n-aria="stepnav.next"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square"/></svg></button>
+    <span class="stepnav-hint" aria-hidden="true" data-i18n="stepnav.hint">Next</span>
+  </nav>
 
   <main id="main" tabindex="-1">
     <div class="map" id="map">
@@ -64,7 +90,7 @@
       <div class="hero-inner">
         <h1 class="hero-title" data-i18n="hero.title">Every week, the same hours.</h1>
         <div class="hero-side">
-          <p class="hero-sub" data-i18n="hero.sub">Recuro builds one platform for sales, stock, orders, staff hours, cost of goods and invoices, for cafés, bakeries and restaurants.</p>
+          <p class="hero-sub" data-i18n="hero.sub">Recuro builds one platform for cafés, bakeries and restaurants. It runs the routine from the till to the invoice.</p>
           <a class="btn-outline" href="https://cal.com/leorecuro/30min" data-book><span data-i18n="cta.book">Book 30 min</span> <span aria-hidden="true">→</span></a>
         </div>
       </div>

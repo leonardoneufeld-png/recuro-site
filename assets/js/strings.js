@@ -16,6 +16,7 @@ export const STRINGS = {
   },
   'meta.notfoundTitle': { en: 'Page not found · Recuro', de: 'Seite nicht gefunden · Recuro' },
 
+  'loader.label': { en: 'Loading', de: 'Wird geladen' },
   'nav.skip': { en: 'Skip to content', de: 'Zum Inhalt springen' },
   'nav.main': { en: 'Main', de: 'Hauptnavigation' },
   'nav.home': { en: 'Recuro', de: 'Recuro' },
@@ -26,11 +27,15 @@ export const STRINGS = {
   'nav.lang': { en: 'Deutsch', de: 'English' },
   'nav.langLabel': { en: 'Auf Deutsch lesen', de: 'Read in English' },
   'cta.book': { en: 'Book 30 min', de: '30 Min. buchen' },
+  'stepnav.label': { en: 'Sections', de: 'Abschnitte' },
+  'stepnav.prev': { en: 'Previous section', de: 'Vorheriger Abschnitt' },
+  'stepnav.next': { en: 'Next section', de: 'Nächster Abschnitt' },
+  'stepnav.hint': { en: 'Next', de: 'Weiter' },
 
   'hero.title': { en: 'Every week, the same hours.', de: 'Jede Woche dieselben Stunden.' },
   'hero.sub': {
-    en: 'Recuro builds one platform for sales, stock, orders, staff hours, cost of goods and invoices, for cafés, bakeries and restaurants.',
-    de: 'Recuro baut eine Plattform für Verkauf, Lager, Bestellungen, Arbeitszeiten, Wareneinsatz und Rechnungen, für Cafés, Bäckereien und Restaurants.',
+    en: 'Recuro builds one platform for cafés, bakeries and restaurants. It runs the routine from the till to the invoice.',
+    de: 'Recuro baut eine Plattform für Cafés, Bäckereien und Restaurants. Sie erledigt die Routine von der Kasse bis zur Rechnung.',
   },
   'hero.photoAlt': {
     en: 'Six brushed-steel panels floating apart in a dark room',

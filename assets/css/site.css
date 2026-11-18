@@ -13,7 +13,7 @@
   --paper: #ede8e0;
   --muted: #a8a096;
   --muted-light: #675f55;
-  --signal: #f0c987; /* the map's light, and the three stat values on the dark case band; nowhere else */
+  --signal: #f0c987; /* the map's light, the three stat values on the dark case band, the loading orb, the step arrows' focus ring; nowhere else */
   --brass: #7a5a1c; /* the one accent on bone: calculator result, text-link underlines and hover, the focused field's hairline */
   --header-h: 5.2rem; /* main.js replaces this with the measured header height */
   --glass-opacity: 1; /* ink glass behind text over the live canvas: fully opaque under the text, so no thread, plate or glow shows through */
@@ -416,3 +416,48 @@ input.field-v[aria-invalid='true'] { border-bottom-style: dashed; color: var(--m
 @media (prefers-reduced-motion: reduce) {
   .motion .reveal { opacity: 1; transform: none; transition: none; }
 }
+
+/* Loading screen (index only): the head script sets html.loading while the 3D map starts; js/loader/ takes it down. */
+.loader { display: none; }
+html.loading .loader {
+  position: fixed; inset: 0; z-index: 30; display: grid; place-content: center; justify-items: center; gap: 0.75rem;
+  background: var(--ink); color: var(--paper); transition: opacity 0.4s var(--ease-out);
+}
+.loader-orb { width: 7.5rem; height: 7.5rem; color: var(--signal); transition: transform 0.4s var(--ease-out); }
+html.loading-out .loader { opacity: 0; pointer-events: none; }
+html.loading-out .loader-orb { transform: scale(1.08); }
+/* under the loader the stills and the canvas swap at once, so the loader's own fade is the only one */
+html.loading :is(.stage, .hero-img, .beat-still, .flow-still) { transition: none; }
+
+/* ---------- step arrows: previous / next, fixed bottom right; solid ink so they read over footage, steel and bone ---------- */
+.stepnav {
+  position: fixed; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 20; display: grid; gap: 8px;
+}
+.stepnav-btn {
+  display: grid; place-items: center; width: 48px; height: 48px; padding: 0; cursor: pointer;
+  background: var(--ink); color: var(--paper); border: 1px solid rgb(237 232 224 / 0.6);
+  transition: transform 0.15s var(--ease-out), opacity 0.25s var(--ease-out), color 0.2s, border-color 0.2s;
+}
+/* hover only where a pointer hovers: on touch screens it would stick gold after a tap */
+@media (hover: hover) { .stepnav-btn:hover { color: var(--paper); border-color: var(--paper); } }
+.stepnav-btn:focus-visible { color: var(--signal); border-color: currentColor; outline: 2px solid currentColor; outline-offset: 3px; }
+.stepnav-btn:active { transform: scale(0.94); }
+.stepnav-btn[aria-disabled='true'] { opacity: 0.35; cursor: default; color: var(--paper); border-color: rgb(237 232 224 / 0.6); transform: none; }
+.stepnav-hint {
+  position: absolute; right: calc(100% + 8px); bottom: 0; height: 48px; display: grid; place-items: center; padding: 0 0.9rem;
+  background: var(--ink); color: var(--paper); border: 1px solid rgb(237 232 224 / 0.6);
+  font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap;
+  opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s var(--ease-out), visibility 0s linear 0.3s;
+}
+.stepnav.hint .stepnav-hint { opacity: 1; visibility: visible; transition: opacity 0.3s var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .stepnav-hint, .stepnav.hint .stepnav-hint { transition: none; } }
+html.loading .stepnav { visibility: hidden; }
+/* phone: side by side in the header bar, left of the language switch (stepnav.js sets --stepnav-right). Bottom right
+   covered body text at 6 of 12 stops on a 375 x 667 screen: the phone text frames run to the bottom edge. */
+@media (max-width: 759px) {
+  .stepnav { grid-auto-flow: column; top: calc((var(--header-h) - 48px) / 2); bottom: auto; right: var(--stepnav-right, 7.5rem); }
+  .stepnav-hint { top: calc(100% + 8px); bottom: auto; right: 0; }
+}
+/* ---------- end step arrows ---------- */
+

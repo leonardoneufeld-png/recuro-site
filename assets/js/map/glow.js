@@ -3,6 +3,10 @@
 const HALO_SCALE = [26, 19];
 const HOLE_SPAN = 7; // world units the hole-light texture covers (icons are inside 6 x 6)
 const HOLE_PX = 192;
+const HAZE_RADIUS = 0.5; // in screen heights on a landscape screen
+// The haze is measured in screen heights; on a portrait screen that made it wider than the phone and lit it to the bottom
+// edge. Measuring by the short side keeps landscape exactly as it was and leaves ink round a phone's edges.
+export const hazeRadius = (aspect) => HAZE_RADIUS * (aspect > 0 ? Math.min(1, aspect) : 1);
 
 const PLANE_VERT = /* glsl */ `
 varying vec2 vUv;
@@ -159,7 +163,7 @@ export function buildGlow(T3, signal, halos = 0, maskUniforms = {}) {
   const amber = new T3.Color().setRGB(1.0, 0.66, 0.26);
   const haze = mk(new T3.PlaneGeometry(2, 2), HAZE_VERT, HAZE_FRAG, {
     ...maskUniforms, uColor: { value: amber },
-    uAspect: { value: 1.6 }, uCentre: { value: new T3.Vector2(0.5, 0.5) }, uRadius: { value: 0.5 },
+    uAspect: { value: 1.6 }, uCentre: { value: new T3.Vector2(0.5, 0.5) }, uRadius: { value: HAZE_RADIUS },
   });
   haze.renderOrder = -10;
   const plateHalos = Array.from({ length: halos }, () => {
@@ -175,6 +179,7 @@ export function buildGlow(T3, signal, halos = 0, maskUniforms = {}) {
     u.uGain.value = gain;
     u.uCentre.value.set(cx, cy);
     u.uAspect.value = aspect;
+    u.uRadius.value = hazeRadius(aspect);
   };
   const setHalo = (i, gain) => {
     const h = plateHalos[i];

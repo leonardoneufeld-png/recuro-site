@@ -148,10 +148,19 @@ if (mapEl && header && 'IntersectionObserver' in window) {
   addEventListener('resize', () => { clearTimeout(headerTimer); headerTimer = setTimeout(watchHeader, 150); });
 }
 
+// Step arrows: they only scroll, so they run with or without the map
+const stepNav = document.querySelector('.stepnav');
+if (stepNav) import('./stepnav.js').then((m) => m.initStepNav(stepNav)).catch(() => {});
+
 // 3D map: index page only, after first paint, through a dynamic import. Any failure leaves the static page as it is.
 const mapCanvas = mapEl?.querySelector('.stage');
 if (mapEl && mapCanvas) {
   const startMap = () => import('./map/engine.js').then((m) => m.startMap({ root: mapEl, canvas: mapCanvas })).catch(() => {});
-  if ('requestIdleCallback' in window) requestIdleCallback(startMap, { timeout: 2000 });
+  const root = document.documentElement;
+  if (root.classList.contains('loading')) {
+    // the head script put the loading screen up: start the map at once and tell the loader when it is on screen
+    const loader = import('./loader/loader.js').then((m) => m.initLoader()).catch(() => () => root.classList.remove('loading'));
+    startMap().then(() => loader).then((mapReady) => mapReady());
+  } else if ('requestIdleCallback' in window) requestIdleCallback(startMap, { timeout: 2000 });
   else setTimeout(startMap, 800);
 }

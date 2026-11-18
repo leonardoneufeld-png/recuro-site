@@ -1,6 +1,7 @@
-// Fine film grain, added to the last pass of the composer (the output pass), so it lies over steel, light and room alike.
-// Monochrome, weighted by brightness (none in black, none in the brightest light), refreshed 24 times a second.
-export const GRAIN = Object.freeze({ amount: 0.025, hz: 24, cell: 1.0 });
+// A dither in the last pass of the composer (the output pass), so the dark gradients of the room do not band.
+// At most one 8-bit level up or down: it was a visible film grain (0.025) until 2026-11-14, when Leo asked for a crisp
+// page. Monochrome, weighted by brightness (none in black, none in the brightest light), refreshed 24 times a second.
+export const GRAIN = Object.freeze({ amount: 0.5 / 255, hz: 24, cell: 1.0 });
 
 const FUNCTION = `
 uniform float uGrain;
