@@ -175,7 +175,7 @@ export const STRINGS = {
     en: 'A staff assistant in Telegram for hours, shifts, sick leave and the monthly close. It runs in production.',
     de: 'Ein Assistent fürs Personal in Telegram: Stunden, Schichten, Krankmeldungen und Monatsabschluss. Er läuft im Produktivbetrieb.',
   },
-  'case.stat1.value': { en: '4 h', de: '4 h' },
+  'case.stat1.value': { en: '12 h', de: '12 h' },
   'case.stat1.label': {
     en: 'a month saved on overtime checks (measured)',
     de: 'pro Monat gespart bei Überstundenkontrollen (gemessen)',

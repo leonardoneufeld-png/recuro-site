@@ -95,7 +95,7 @@ export function buildHub(T3, signal) {
   const label = new T3.Mesh(new T3.PlaneGeometry(LABEL_W, 2.3), labelMat);
   label.position.z = FACE_Z;
   group.add(label);
-  group.userData = { half: [W / 2 + BEVEL, H / 2 + BEVEL], faceZ: FACE_Z + 0.01 };
+  group.userData = { half: [W / 2 + BEVEL, H / 2 + BEVEL], radius: RADIUS + BEVEL, faceZ: FACE_Z + 0.01 };
   group.visible = false;
 
   // the font may arrive after the first paint: draw the label again once it has

@@ -6,6 +6,7 @@ import { MASK_GLSL } from './textmask.js';
 // with a bright thin core and a feathered edge, a soft head while it draws in, and a few soft highlights that travel
 // along it continuously. Everything is a function of time and uniforms, so nothing ever switches on in one frame.
 const DEFAULT_HALF = [6.1, 4.1]; // plate rim, bevel included; a plate may carry its own in userData.half
+const DEFAULT_RADIUS = 0.7; // its corner radius, bevel included (panels.js: 0.6 + 0.1); a plate may carry its own in userData.radius
 const TUCK = 0.3; // the ribbon ends this far under the plate, so the join is hidden
 const RIM_LEN = 5;
 const RIM_WIDTH = 0.9;
@@ -97,21 +98,39 @@ function arc(ca, cb, bow, outP, outT) {
   }
 }
 
-// Where the plate's rim picks up the light of a link that meets it: a short bright stretch centred on the join.
+// Where the plate's rim picks up the light of a link that meets it: a short bright stretch centred on the join, on the
+// straight part of one edge only. Brightest on the edge, falling smoothly to 0 a strip's width inside it, and fading out
+// along the edge before the corner arc begins: light bent round a corner drew a crease parallel to the arc (round 6b).
+// Nothing reaches outside the outline: until 2026-11-18 the quad itself stuck out past the rounded corner.
 const RIM_FRAG = /* glsl */ `
 uniform vec3 uColor;
 uniform float uGain;
+uniform vec2 uHalf;
+uniform float uRadius;
+uniform float uSide; // 1: the strip lies on a side edge (runs along y), 0: on the top or bottom edge (runs along x)
 varying vec2 vUv;
+varying vec2 vPlate;
 void main() {
   float az = (vUv.x - 0.5) / 0.2;
-  float along = exp(-az * az);
-  float v = clamp(vUv.y, 0.0, 1.0); // a negative sqrt or pow input would give NaN, and bloom spreads one NaN pixel over the whole screen
-  float across = v * v * v;
-  gl_FragColor = vec4(uColor * uGain * along * across, 1.0);
+  float along = exp(-az * az) * (1.0 - smoothstep(0.3, 0.5, abs(vUv.x - 0.5)));
+  vec2 p = abs(vPlate);
+  float edge = mix(uHalf.y - p.y, uHalf.x - p.x, uSide); // depth inside the strip's own straight edge
+  float run = mix(p.x, p.y, uSide); // distance from the edge's middle, along it
+  float straight = mix(uHalf.x, uHalf.y, uSide) - uRadius; // where the corner arc begins
+  float corner = 1.0 - smoothstep(straight - min(0.6, 0.5 * straight), straight, run);
+  float inner = clamp(1.0 - edge / ${RIM_WIDTH.toFixed(2)}, 0.0, 1.0); // never negative, so no NaN
+  float across = inner * inner * inner * smoothstep(0.0, 0.04, edge); // 0 on and outside the edge, after a 0.04 soft rise
+  gl_FragColor = vec4(uColor * uGain * along * across * corner, 1.0);
 }`;
 const RIM_VERT = /* glsl */ `
+uniform mat4 uLocal;
 varying vec2 vUv;
-void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+varying vec2 vPlate;
+void main() {
+  vUv = uv;
+  vPlate = (uLocal * vec4(position, 1.0)).xy;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
 
 // how visible a plate is (1 when it does not say): set every frame by look.js
 const shown = (plate) => plate.userData.shown ?? 1;
@@ -134,10 +153,14 @@ export function buildLinks(T3, ring, threads, signal = '#f0c987', plates = {}, s
   owned.push(rimGeometry);
   const makeRim = (plate) => {
     const material = new T3.ShaderMaterial({
-      uniforms: { uColor: shared.uColor, uGain: { value: 0 } }, vertexShader: RIM_VERT, fragmentShader: RIM_FRAG,
-      transparent: true, depthWrite: false, blending: T3.AdditiveBlending,
+      uniforms: {
+        uColor: shared.uColor, uGain: { value: 0 }, uLocal: { value: null },
+        uHalf: { value: new T3.Vector2(...(plate.userData.half || DEFAULT_HALF)) }, uRadius: { value: plate.userData.radius ?? DEFAULT_RADIUS }, uSide: { value: 1 },
+      },
+      vertexShader: RIM_VERT, fragmentShader: RIM_FRAG, transparent: true, depthWrite: false, blending: T3.AdditiveBlending,
     });
     const mesh = new T3.Mesh(rimGeometry, material);
+    material.uniforms.uLocal.value = mesh.matrix; // the strip's place on the plate, kept current by three every frame
     mesh.visible = false;
     plate.add(mesh);
     owned.push(material);
@@ -228,6 +251,7 @@ export function buildLinks(T3, ring, threads, signal = '#f0c987', plates = {}, s
     mesh.visible = gain > 0.003;
     if (!mesh.visible) return;
     const sideways = lean > 0;
+    mesh.material.uniforms.uSide.value = sideways ? 1 : 0;
     const inset = RIM_WIDTH / 2 - 0.05;
     if (sideways) {
       const sx = Math.sign(jx) || 1;

@@ -193,18 +193,17 @@ html.map-live .hero::after {
 }
 html.map-live .hero-img { visibility: hidden; opacity: 0; transition: opacity 0.6s var(--ease-out), visibility 0s linear 0.6s; }
 /* Text over the live canvas sits on ink glass. A shadow spreads it past the box, so no layout box differs from the static page. */
-/* desktop panel text: ink glass that feathers into the scene over 2.5rem on every side. The solid part reaches 1.5rem past the text box. */
+/* desktop panel text: ink glass with round corners. A blurred shadow of the text box is the falloff: solid to about 1.5rem
+   past the box, gone by about 4.5rem, the same even curve on edges and corners in Chrome and Safari. The radius is at least
+   the spread, so both engines grow it the same way (radius + spread). */
 @media (min-width: 760px) {
   /* the map script fades a beat's text (and its glass) out before the camera moves on, so the glass never covers the plate arriving next */
   html.map-live .beat-grid { opacity: var(--fade, 1); }
   html.map-live .beat-text { position: relative; isolation: isolate; }
   html.map-live .beat-text::before {
-    content: ''; position: absolute; z-index: -1; inset: -4rem; pointer-events: none;
+    content: ''; position: absolute; z-index: -1; inset: -1.2rem; pointer-events: none; border-radius: 1.75rem;
     background: rgb(20 17 14 / var(--glass-opacity));
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent), linear-gradient(to bottom, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
-    -webkit-mask-composite: source-in;
-    mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent), linear-gradient(to bottom, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
-    mask-composite: intersect;
+    box-shadow: 0 0 1.25rem 1.75rem rgb(20 17 14 / var(--glass-opacity));
   }
 }
 /* the flow text sits on ink glass as wide as the screen; its top edge fades in over 2rem and its lower edge fades out over 3rem, so no box edge shows */
@@ -247,6 +246,7 @@ html.map-live:not(.map-shown) .hero-img { visibility: visible; opacity: 1; }
   .flow-body { grid-row: 2; grid-column: 6 / span 7; margin-top: 0; align-self: end; }
 }
 /* static: the still hangs in the lower part of the screen under the pinned text; live: it is hidden but keeps its box */
+.flow-pic { display: contents; } /* phones get their own still (index.html); no wrapper box, so the still stays sticky */
 .flow-still { display: block; position: sticky; top: 40svh; margin-top: clamp(1.5rem, 1rem + 2vw, 3rem); aspect-ratio: 21 / 9; object-fit: cover; }
 
 /* the canvas shows the panels once it is live, so the stills stay as empty space */
@@ -258,7 +258,10 @@ html.map-live:not(.map-shown) :is(.beat-still, .flow-still) { visibility: visibl
      the text sits below it on opaque ink. Each panel is a frame pinned under the header while the next frame rises over it
      from below, so text never enters the stage. Same boxes with and without the map. */
   :root { --stage-share: 0.44; --stage-h: calc((100svh - var(--header-h)) * var(--stage-share)); }
-  @media (max-height: 700px) { :root { --stage-share: 0.36; } }
+  /* shorter stages on shorter phones so the text column ends above the step arrows (--stepnav-clear) */
+  @media (max-height: 860px) { :root { --stage-share: 0.41; } }
+  @media (max-height: 700px) { :root { --stage-share: 0.24; } }
+  @media (max-height: 660px) { :root { --stage-share: 0.21; } }
   .beats { display: flow-root; }
   .beat {
     position: sticky; top: var(--header-h); display: block; min-height: 0; padding: 0;
@@ -267,7 +270,7 @@ html.map-live:not(.map-shown) :is(.beat-still, .flow-still) { visibility: visibl
   .beat-grid { display: flex; flex-direction: column; width: 100%; height: 100%; margin: 0; }
   .beat-still, .beat[data-panel] .beat-still { order: 0; flex: none; width: 100%; height: var(--stage-h); aspect-ratio: auto; object-fit: cover; }
   .beat-text, .beat[data-panel] .beat-text {
-    order: 1; flex: 1 1 auto; min-height: 0; padding: 0.9rem var(--gutter) 0; background: var(--ink); box-shadow: none; overflow: clip;
+    order: 1; flex: 1 1 auto; min-height: 0; padding: 0.9rem var(--gutter) var(--stepnav-clear, 0); background: var(--ink); box-shadow: none; overflow: clip;
   }
   .motion .beat-text.reveal { opacity: 1; transform: none; transition: none; }
   .beat-meta { margin-bottom: 0.5rem; }
@@ -453,11 +456,12 @@ html.loading :is(.stage, .hero-img, .beat-still, .flow-still) { transition: none
 .stepnav.hint .stepnav-hint { opacity: 1; visibility: visible; transition: opacity 0.3s var(--ease-out); }
 @media (prefers-reduced-motion: reduce) { .stepnav-hint, .stepnav.hint .stepnav-hint { transition: none; } }
 html.loading .stepnav { visibility: hidden; }
-/* phone: side by side in the header bar, left of the language switch (stepnav.js sets --stepnav-right). Bottom right
-   covered body text at 6 of 12 stops on a 375 x 667 screen: the phone text frames run to the bottom edge. */
+/* phone: side by side at the bottom right, where the thumb is (Leo, 2026-11-18: in the header a finger covered the
+   screen). The phone text frames keep --stepnav-clear free at their bottom so the arrows never sit on text. */
 @media (max-width: 759px) {
-  .stepnav { grid-auto-flow: column; top: calc((var(--header-h) - 48px) / 2); bottom: auto; right: var(--stepnav-right, 7.5rem); }
-  .stepnav-hint { top: calc(100% + 8px); bottom: auto; right: 0; }
+  :root { --stepnav-clear: calc(48px + 0.75rem + env(safe-area-inset-bottom)); }
+  .stepnav { grid-auto-flow: column; bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+  .stepnav-hint { bottom: calc(100% + 8px); right: 0; }
 }
 /* ---------- end step arrows ---------- */
 

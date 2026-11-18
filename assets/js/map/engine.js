@@ -369,7 +369,10 @@ export async function startMap({ root, canvas }) {
     }
     if (!painted) { stop(); return null; }
 
-    if (force && local) window.__map = { get T() { return T; }, get wave() { return waveClock; } };
+    // dev only. centre(ids): where the plates (or 'hub') sit on screen, in CSS px, for tools/capture-stills.mjs
+    const centre = (ids) => ids.map((id) => ndc.setFromMatrixPosition((id === 'hub' ? rig.group : panels.byId[id]).matrixWorld).project(camera))
+      .reduce((s, p) => [s[0] + (p.x + 1) / 2 * size.width / ids.length, s[1] + (1 - p.y) / 2 * size.height / ids.length], [0, 0]);
+    if (force && local) window.__map = { get T() { return T; }, get wave() { return waveClock; }, centre };
     html.classList.add('map-live');
     // the next frame starts the fade; the stills fade out with it (see site.css)
     requestAnimationFrame(() => requestAnimationFrame(() => { if (!stopped) html.classList.add('map-shown'); }));

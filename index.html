@@ -18,7 +18,8 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="theme-color" content="#14110e">
   <link rel="preload" href="assets/fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/img/hero.webp" as="image" fetchpriority="high">
+  <link rel="preload" href="assets/img/hero.webp" as="image" fetchpriority="high" media="(min-width: 760px)">
+  <link rel="preload" href="assets/img/hero-phone.webp" as="image" fetchpriority="high" media="(max-width: 759px)">
   <link rel="stylesheet" href="assets/css/site.css">
   <script>
   (function () {
@@ -86,7 +87,7 @@
     <div class="map" id="map">
       <canvas class="stage" aria-hidden="true"></canvas>
     <section id="hero" class="hero">
-      <img class="hero-img" data-slot="hero" src="assets/img/hero.webp" width="2400" height="1350" fetchpriority="high" decoding="async" alt="Six brushed-steel panels floating apart in a dark room" data-i18n-alt="hero.photoAlt">
+      <picture><source media="(max-width: 759px)" srcset="assets/img/hero-phone.webp" width="1170" height="2532"><img class="hero-img" data-slot="hero" src="assets/img/hero.webp" width="2400" height="1350" fetchpriority="high" decoding="async" alt="Six brushed-steel panels floating apart in a dark room" data-i18n-alt="hero.photoAlt"></picture>
       <div class="hero-inner">
         <h1 class="hero-title" data-i18n="hero.title">Every week, the same hours.</h1>
         <div class="hero-side">
@@ -251,7 +252,7 @@
         <p class="flow-body reveal" data-i18n="flow.body">A sale lowers the stock. Low stock drafts an order. The invoice is matched to that order, hours reach payroll, and the cost of each product stays current. A person approves before anything is sent. The rest of the day goes to guests and sales.</p>
       </div>
       <div class="flow-hold">
-        <img class="flow-still wrap" data-slot="flow" src="assets/img/flow.webp" width="2400" height="1029" loading="lazy" decoding="async" alt="The six panels joined by lines of light into one map" data-i18n-alt="flow.alt">
+        <picture class="flow-pic"><source media="(max-width: 759px)" srcset="assets/img/flow-phone.webp" width="1170" height="2184"><img class="flow-still wrap" data-slot="flow" src="assets/img/flow.webp" width="2400" height="1029" loading="lazy" decoding="async" alt="The six panels joined by lines of light into one map" data-i18n-alt="flow.alt"></picture>
       </div>
     </section>
     </div>
@@ -295,7 +296,7 @@
         <p class="case-text reveal" data-i18n="case.body">A staff assistant in Telegram for hours, shifts, sick leave and the monthly close. It runs in production.</p>
         <dl class="stats">
           <div class="stat reveal">
-            <dt data-i18n="case.stat1.value">4 h</dt>
+            <dt data-i18n="case.stat1.value">12 h</dt>
             <dd data-i18n="case.stat1.label">a month saved on overtime checks (measured)</dd>
           </div>
           <div class="stat reveal">
