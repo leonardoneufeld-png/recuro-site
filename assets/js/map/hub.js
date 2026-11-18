@@ -1,5 +1,5 @@
 // The hub in the middle of the assembled map: a small steel plate carrying the Recuro wordmark as gold light. The six panels
-// connect to it through spokes (links.js). It leans toward the pointer, and the engine lets it send a pulse round the ring.
+// connect to it through spokes (links.js). It grows a little under the pointer, and the engine lets it send a pulse round the ring.
 import { capRadiance } from './panels.js';
 import { COOL_FACE, WARM_FACE, COOL_BEVEL, WARM_BEVEL } from './look.js';
 
